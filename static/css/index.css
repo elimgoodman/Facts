@@ -1,0 +1,69 @@
+ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font: normal 13px Calibri, Arial, Helvetica, sans-serif;
+}
+
+#code {
+    font-family: monospace;
+    font-size: 16px;
+    height: 100%;
+    width: 700px;
+    border: none;
+    padding: 24px;
+    resize: none;
+    float: left;
+}
+
+#fact-drawer {
+    background: white;
+    width: 200px;
+    height: 100%;
+    z-index: 2;
+    float: left;
+    border-right: 1px solid #ccc;
+}
+
+#code:focus {
+    outline: none;
+}
+
+#action-bar {
+    border-top: 1px solid #ccc;
+    position: fixed;
+    width: 100%;
+    height: 60px;
+    bottom: 0;
+    background: white;
+}
+
+#execute-button {
+    margin-top: 12px;
+    margin-left: 48px;
+}
+
+#fact-list {
+    padding: 24px;
+    font-family: monospace;
+    font-size: 16px;
+}
+
+.fact {
+    cursor: pointer;
+    border: 1px solid #ccc;
+    padding: 6px;
+}
+
+.fact-type {
+    font-weight: bold;
+}
+
+.fact-type.main_block {
+    color: green;
+}
