@@ -34,8 +34,7 @@ def connect():
 def index():
     connect()
 
-    main_block = facts.Fact.objects.get(fact_type="main_block")
-    return render_template('index.jinja', main_body=main_block.body)
+    return render_template('index.jinja')
 
 @app.route('/facts')
 def get_all_facts():

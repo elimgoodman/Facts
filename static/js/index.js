@@ -29,7 +29,17 @@ $(function(){
         },
     });
 
-    Facts.Fact = Backbone.Model.extend({});
+    Facts.Fact = Backbone.Model.extend({
+        defaults: {
+            selected: false
+        },
+        select: function() {
+            this.set({selected: true});
+        },
+        deselect: function() {
+            this.set({selected: false});
+        }
+    });
     Facts.FactCollection = Backbone.Collection.extend({
         model: Facts.Fact,
         url: '/facts',
@@ -38,13 +48,37 @@ $(function(){
         }
     });
     Facts.AllFacts = new Facts.FactCollection();
-    
+
+    Facts.SelectedFact = _.extend({
+        set: function(f) {
+            if(this.f) {
+                this.f.deselect();
+            }
+
+            this.f = f;
+            this.f.select();
+            this.trigger('change');
+        },
+        get: function() {
+            return this.f;
+        }
+    }, Backbone.Events)
+
     Facts.FactListView = Facts.MView.extend({
         tagName: 'li',
         className: 'fact',
+        events: {
+            'click': 'select'
+        },
         template: _.template($('#fact-list-tmpl').html()),
         postRender: function() {
             this.$el.addClass(this.model.get('fact_type'));
+            if(this.model.get('selected')) {
+                this.$el.addClass('selected');
+            }
+        },
+        select: function() {
+            Facts.SelectedFact.set(this.model);
         }
     });
 
@@ -64,7 +98,18 @@ $(function(){
         }
     });
 
+    Facts.Editor = Backbone.View.extend({
+        el: $("#code"),
+        initialize: function() {
+            Facts.SelectedFact.bind('change', this.render, this);
+        },
+        render: function() {
+            this.$el.html(Facts.SelectedFact.get().get('body'));
+        }
+    });
+
     new Facts.FactList();
+    new Facts.Editor();
     Facts.AllFacts.fetch();
 
 });

@@ -60,6 +60,10 @@ body {
     padding: 6px;
 }
 
+.fact.selected {
+    border: 1px solid #333;
+}
+
 .fact-type {
     font-weight: bold;
 }
