@@ -43,6 +43,22 @@ body {
     background: white;
 }
 
+#command-bar {
+    display: none;
+}
+    
+.command-input {
+    border: 1px solid #CCCCCC;
+    box-shadow: 0 1px 3px #CCCCCC;
+    color: #333333;
+    font-family: monospace;
+    font-size: 16px;
+    font-weight: bold;
+    margin: 12px;
+    padding: 6px;
+    width: 90%;
+}
+
 #execute-button {
     margin-top: 12px;
     margin-left: 48px;
@@ -58,6 +74,7 @@ body {
     cursor: pointer;
     border: 1px solid #ccc;
     padding: 6px;
+    margin-bottom: 9px;
 }
 
 .fact.selected {
@@ -66,6 +83,10 @@ body {
 
 .fact-type {
     font-weight: bold;
+}
+
+.fact-type.fn {
+    color: orange;
 }
 
 .fact-type.main_block {

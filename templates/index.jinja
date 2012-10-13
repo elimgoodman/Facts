@@ -2,6 +2,7 @@
     <head>
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/buttons.css') }}" />
         <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/index.css') }}" />
+        <script src="{{ url_for('static', filename='js/mousetrap.js') }}" type="text/javascript"></script>
         <script src="{{ url_for('static', filename='js/jquery.js') }}" type="text/javascript"></script>
         <script src="{{ url_for('static', filename='js/underscore.js') }}" type="text/javascript"></script>
         <script src="{{ url_for('static', filename='js/backbone.js') }}" type="text/javascript"></script>
@@ -11,10 +12,16 @@
         <div id="fact-drawer">
             <ul id="fact-list">
             </ul>
+        <a href="#" id="new-fn-link">+ fn</a>
         </div>
         <textarea id="code"></textarea>
         <div id="action-bar">
-            <a id="execute-button" class="tsc_awb_large tsc_flat" href="#">Execute</a>
+            <div id="command-bar">
+                <input class="command-input" />
+            </div>
+            <div id="action-buttons">
+                <a id="execute-button" class="tsc_awb_large tsc_flat" href="#">Execute</a>
+            </div>
         </div>
     </body>
 
@@ -22,6 +29,8 @@
         <span class="fact-type <%= fact_type %>">
             <% if(fact_type == "main_block") { %>
                 m
+            <% } else if(fact_type == "fn") { %>
+                fn
             <% } %>
         </span>
         <%= name %>

@@ -39,19 +39,35 @@ def index():
 @app.route('/facts')
 def get_all_facts():
     connect()
-    return jsonify(resp=facts.Fact.objects)
+
+    #FIXME: this probably sux
+    #we always need a main block...
+    (main_block, created) = facts.Fact.objects.get_or_create(fact_type="main_block")
+    if created:
+        main_block.name = "main"
+        main_block.body = ""
+        main_block.save()
+        return jsonify(resp=[main_block])
+    else:
+        return jsonify(resp=facts.Fact.objects)
+
+@app.route('/fact', methods=["POST", "PUT"])
+def create_or_update_fact():
+    connect()
+    name = request.json['name']
+    (f, _) = facts.Fact.objects.get_or_create(name=name)
+    f.body = request.json['body']
+    f.fact_type = request.json['fact_type']
+    f.save()
+
+    return jsonify(resp=f)
+
 
 @app.route("/execute", methods=['POST'])
 def execute():
     connect()
 
     data = request.form['code']
-    
-    (main_block, _) = facts.Fact.objects.get_or_create(fact_type="main_block")
-    main_block.name = "main"
-    main_block.body = data
-    main_block.save()
-
     plyer.lexer.input(data)
 
     try:
