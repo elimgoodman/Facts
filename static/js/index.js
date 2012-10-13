@@ -103,11 +103,15 @@ $(function(){
             }
         },
         initialize: function() {
-            this.$el.html("").val("");
-            Facts.SelectedFact.bind('change', this.render, this);
+            this.$el.val("");
+            Facts.SelectedFact.bind('change', this.renderAndFocus, this);
+        },
+        renderAndFocus: function() {
+            this.render();
+            this.$el.focus();
         },
         render: function() {
-            this.$el.html(Facts.SelectedFact.get().get('body'));
+            this.$el.val(Facts.SelectedFact.get().get('body'));
         },
         getVal: function() {
             return this.$el.val();
@@ -115,18 +119,7 @@ $(function(){
     });
 
     Facts.FactDrawer = Backbone.View.extend({
-        el: $("#fact-drawer"),
-        events: {
-            'click #new-fn-link': 'createNewFn'
-        },
-        createNewFn: function() {
-            var fn_name = prompt("FN NAME:");
-            var fact = new Facts.Fact({
-                name: fn_name,
-                fact_type: "fn"
-            });
-            fact.save();
-        }
+        el: $("#fact-drawer")
     });
 
     Facts.ActionBar = Backbone.View.extend({
@@ -156,6 +149,8 @@ $(function(){
         maybePerformAction: function(e) {
             if(e.keyCode == 13) { //enter
                 Facts.CommandPerformer.perform(this.input.val());
+                Facts.TheActionBar.hideCommandBar();
+            } else if(e.keyCode == 27) { //escape
                 Facts.TheActionBar.hideCommandBar();
             }
         },
@@ -193,23 +188,49 @@ $(function(){
 
     Facts.CommandPerformer = _.extend({
         phrases: {
-            'w': 'writeCurrentBuffer'
+            'w': 'writeCurrentBuffer',
+            'fn': 'createNewFn',
+            'e': 'selectFact'
         },
         perform: function(phrase) {
-            var action = this.phrases[phrase];
+            var parts = phrase.split(" ");
+            var command = parts[0];
+            var args = parts.slice(1);
+            var action = this.phrases[command];
+
             if(this[action]) {
-                this[action]();
+                this[action](args);
             } else {
                 console.log("INVALID PHRASE");
             }
         },
-        writeCurrentBuffer: function() {
+        writeCurrentBuffer: function(args) {
             var fact = Facts.SelectedFact.get();
-            var body = Facts.TheEditor.getVal();
-            fact.set({
-                body: body
+            if(fact) {
+                var body = Facts.TheEditor.getVal();
+                fact.set({
+                    body: body
+                });
+                fact.save();
+            }
+        },
+        createNewFn: function(args) {
+            var fn_name = args[0];
+            var fact = new Facts.Fact({
+                name: fn_name,
+                fact_type: "fn"
             });
             fact.save();
+            Facts.AllFacts.push(fact);
+            Facts.SelectedFact.set(fact);
+        },
+        selectFact: function(args) {
+            var fact_name = args[0];
+            var fact = Facts.AllFacts.find(function(f){
+                return f.get('name') == fact_name;
+            });
+
+            Facts.SelectedFact.set(fact);
         }
     }, Backbone.Events);
 

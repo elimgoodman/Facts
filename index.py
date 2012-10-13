@@ -54,8 +54,14 @@ def get_all_facts():
 @app.route('/fact', methods=["POST", "PUT"])
 def create_or_update_fact():
     connect()
-    name = request.json['name']
-    (f, _) = facts.Fact.objects.get_or_create(name=name)
+
+    if request.json.has_key('fact_id'):
+        fact_id = request.json['fact_id']
+        (f, _) = facts.Fact.objects.get_or_create(fact_id=fact_id)
+    else:
+        f = facts.Fact()
+
+    f.name = request.json['name']
     f.body = request.json['body']
     f.fact_type = request.json['fact_type']
     f.save()
