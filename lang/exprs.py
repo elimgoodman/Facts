@@ -1,3 +1,5 @@
+from lang.output import StdOut as std
+
 class Expr(object):
 
     def evaluate(self, scope):
@@ -23,7 +25,7 @@ class StatementList(Expr):
         return out
     
 class PrintStmt(Expr):
-
+        
     def __init__(self, value):
         self.value = value
 
@@ -31,7 +33,8 @@ class PrintStmt(Expr):
         return "(PRINT %s)" % (self.value)
 
     def evaluate(self, scope):
-        print self.value.evaluate(scope)
+       txt = self.value.evaluate(scope)
+       std.writeLn(txt)
 
 class Assignment(Expr):
 
@@ -91,6 +94,9 @@ class FunctionPromise(Expr):
         scope.update(self.scope)
         self.fn_def.statements.evaluate(scope)
 
+    def __repr__(self):
+        return "(FN_PROMISE: %s WITH %s)" % (self.fn_def, self.scope)
+
 class FunctionDef(Expr):
 
     def __init__(self, params, statements):
@@ -124,7 +130,7 @@ class FunctionEval(Expr):
         return scope
 
     def __repr__(self):
-        return "(EVAL FN: %s <- %s)" % (self.fn_name, self.args)
+        return "(EVAL FN: %s <- %s)" % (self.fn_var_name, self.args)
 
 class ParamList(Expr):
 

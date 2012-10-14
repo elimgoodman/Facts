@@ -1,11 +1,13 @@
 from flask import Flask, render_template, request
 import lang.plyer as plyer
+import lang.exprs as exprs
 import mongoengine as mongo
 import facts
 import simplejson as json
 import datetime
 from bson.objectid import ObjectId
 from werkzeug import Response
+from lang.output import StdOut as std
 
 class MongoJsonEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -73,15 +75,29 @@ def create_or_update_fact():
 def execute():
     connect()
 
-    data = request.form['code']
+    #build up scope
+    scope = {}
+    facts_not_main = facts.Fact.objects(fact_type__ne='main_block')
+    for fact in facts_not_main:
+        plyer.lexer.input(fact.body)
+        statements = plyer.parser.parse(fact.body, lexer=plyer.lexer)
+        #FIXME: varname hack
+        #FIXME: eval hack, this is awful
+        fn_def = exprs.FunctionDef(exprs.ParamList(), statements)
+        scope["$" + fact.name] = fn_def.evaluate({})
+
+    (main_block, created) = facts.Fact.objects.get_or_create(fact_type="main_block")
+    data = main_block.body
+
     plyer.lexer.input(data)
 
     try:
         parsed = plyer.parser.parse(data, lexer=plyer.lexer)
+        parsed.evaluate(scope)
     except plyer.ParseError as e:
         return jsonify(success=False, line_no=e.line_no, elem=e.elem)
 
-    return jsonify(success=True)
+    return jsonify(success=True, output=std.flush())
 
 if __name__ == '__main__':
     app.run(debug=True)

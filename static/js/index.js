@@ -46,6 +46,8 @@ $(function(){
     Facts.SelectedFact = _.extend({
         set: function(f) {
             if(this.f) {
+                var body = Facts.TheEditor.getVal();
+                this.f.set({body: body}, {silent: true});
                 this.f.deselect();
             }
 
@@ -122,22 +124,6 @@ $(function(){
         el: $("#fact-drawer")
     });
 
-    Facts.ActionBar = Backbone.View.extend({
-        el: $("#action-bar"),
-        initialize: function() {
-            this.command_bar = new Facts.CommandBar();
-            this.action_buttons = new Facts.ActionButtons();
-        },
-        showCommandBar: function() {
-            this.command_bar.show();
-            this.action_buttons.hide();
-        },
-        hideCommandBar: function() {
-            this.command_bar.hide();
-            this.action_buttons.show();
-        }
-    });
-
     Facts.CommandBar = Backbone.View.extend({
         el: $("#command-bar"),
         initialize: function() {
@@ -149,9 +135,9 @@ $(function(){
         maybePerformAction: function(e) {
             if(e.keyCode == 13) { //enter
                 Facts.CommandPerformer.perform(this.input.val());
-                Facts.TheActionBar.hideCommandBar();
+                Facts.TheCommandBar.hide();
             } else if(e.keyCode == 27) { //escape
-                Facts.TheActionBar.hideCommandBar();
+                Facts.TheCommandBar.hide();
             }
         },
         show: function() {
@@ -186,11 +172,23 @@ $(function(){
         }
     });
 
+    Facts.Output = Backbone.View.extend({
+        el: $("#output"),
+        initialize: function() {
+            this.$el.val("");
+        },
+        setOutput: function(output) {
+            this.$el.val(output);
+        }
+    });
+
     Facts.CommandPerformer = _.extend({
         phrases: {
             'w': 'writeCurrentBuffer',
             'fn': 'createNewFn',
-            'e': 'selectFact'
+            'e': 'selectFact',
+            'ex': 'execute',
+            'wa': 'writeAllBuffers'
         },
         perform: function(phrase) {
             var parts = phrase.split(" ");
@@ -204,13 +202,20 @@ $(function(){
                 console.log("INVALID PHRASE");
             }
         },
-        writeCurrentBuffer: function(args) {
+        setCurrentFactBody: function() {
             var fact = Facts.SelectedFact.get();
             if(fact) {
                 var body = Facts.TheEditor.getVal();
                 fact.set({
                     body: body
                 });
+            }
+
+            return fact;
+        },
+        writeCurrentBuffer: function(args) {
+            var fact = this.setCurrentFactBody();
+            if(fact) {
                 fact.save();
             }
         },
@@ -231,18 +236,38 @@ $(function(){
             });
 
             Facts.SelectedFact.set(fact);
-        }
+        },
+        writeAllBuffers: function(args, cb) {
+            this.setCurrentFactBody();
+            Facts.AllFacts.invoke('save');
+            if(cb) {
+                cb(args);
+            }
+        },
+        execute: function(args) {
+            this.writeAllBuffers(args, function(args) {
+                $.post('/execute', {}, function(data){
+                    Facts.TheOutput.setOutput(data.output);
+                }, "json");
+            });
+        } 
     }, Backbone.Events);
 
     Facts.TheFactList = new Facts.FactList();
     Facts.TheEditor = new Facts.Editor();
     Facts.TheFactDrawer = new Facts.FactDrawer();
-    Facts.TheActionBar = new Facts.ActionBar();
+    Facts.TheCommandBar = new Facts.CommandBar();
+    Facts.TheOutput = new Facts.Output();
 
+    Facts.AllFacts.bind('reset', function() {
+        Facts.SelectedFact.set(Facts.AllFacts.at(0));
+    });
     Facts.AllFacts.fetch();
 
     //Global keys
     Mousetrap.bind(":", function(){
-        Facts.TheActionBar.showCommandBar();
+        Facts.TheCommandBar.show();
     });
+
+    $("body").focus();
 });

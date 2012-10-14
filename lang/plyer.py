@@ -117,9 +117,13 @@ def p_func_args(t):
 
     create_or_append(t, e.ArgList, 1, 3)
 
-def p_execute_fn(t):
+def p_execute_fn_with_args(t):
     '''execute_fn : VARNAME '(' func_args ')' '''
     t[0] = e.FunctionEval(t[1], t[3])
+
+def p_execute_fn_no_args(t):
+    '''execute_fn : VARNAME '(' ')' '''
+    t[0] = e.FunctionEval(t[1], e.ArgList())
 
 def p_statement_execute_fn(t):
     '''statement : execute_fn '''

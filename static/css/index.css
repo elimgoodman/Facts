@@ -10,15 +10,19 @@ body {
     font: normal 13px Calibri, Arial, Helvetica, sans-serif;
 }
 
-#code {
+.code-area {
     font-family: monospace;
     font-size: 16px;
+    padding: 24px;
+    resize: none;
+}
+
+#code {
     height: 100%;
     width: 700px;
     border: none;
-    padding: 24px;
-    resize: none;
     float: left;
+    border-right: 1px solid #ccc;
 }
 
 #fact-drawer {
@@ -34,16 +38,13 @@ body {
     outline: none;
 }
 
-#action-bar {
+#command-bar {
     border-top: 1px solid #ccc;
     position: fixed;
     width: 100%;
     height: 60px;
     bottom: 0;
     background: white;
-}
-
-#command-bar {
     display: none;
 }
     
@@ -98,4 +99,13 @@ body {
     font-weight: bold;
     font-family: monospace;
     margin: 0 12px;
+}
+
+#output {
+    background: black;
+    border: none;
+    color: white;
+    height: 100%;
+    width: 400px;
+    float: left;
 }
