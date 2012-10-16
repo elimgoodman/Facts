@@ -78,6 +78,38 @@ $(function(){
         }
     });
 
+    Facts.FactInfoView = Facts.MView.extend({
+        tagName: 'div',
+        className: 'actual-fact-info',
+        events: {
+            'keydown .param-input': 'resizeParamInput'
+        },
+        resizeParamInput: function(e) {
+            var t = $(e.target);
+            var w = t.innerWidth();
+            var new_width;
+            var char_width = 10;
+            //FIXME: put in a regex check for the key
+            if(e.keyCode == 8) { //backspace
+                new_width = w - char_width;
+            } else {
+                new_width = w + char_width;
+            }
+
+            $(e.target).width(new_width);
+        },
+        template: function(context) {
+            var fact_type = this.model.get('fact_type');
+            var type_to_tmpl = {
+                main_block: "main-block-fact-info-tmpl",
+                fn: "fn-fact-info-tmpl"
+            };
+            var tmpl = "#" + type_to_tmpl[fact_type];
+
+            return _.template($(tmpl).html())(context);
+        }
+    });
+
     Facts.FactList = Backbone.View.extend({
         el: $("#fact-list"),
         initialize: function(){
@@ -122,6 +154,18 @@ $(function(){
 
     Facts.FactDrawer = Backbone.View.extend({
         el: $("#fact-drawer")
+    });
+
+    Facts.FactInfo = Backbone.View.extend({
+        el: $("#fact-info"),
+        initialize: function() {
+            Facts.SelectedFact.bind('change', this.render, this);
+        },
+        render: function() {
+            var f = Facts.SelectedFact.get();
+            var v = new Facts.FactInfoView({model: f});
+            this.$el.html(v.render().el);
+        }
     });
 
     Facts.CommandBar = Backbone.View.extend({
@@ -253,6 +297,7 @@ $(function(){
         } 
     }, Backbone.Events);
 
+    Facts.TheFactInfo = new Facts.FactInfo();
     Facts.TheFactList = new Facts.FactList();
     Facts.TheEditor = new Facts.Editor();
     Facts.TheFactDrawer = new Facts.FactDrawer();

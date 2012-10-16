@@ -7,7 +7,8 @@ ul {
 body {
     margin: 0;
     padding: 0;
-    font: normal 13px Calibri, Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    font-family: monospace;
 }
 
 .code-area {
@@ -17,12 +18,23 @@ body {
     resize: none;
 }
 
-#code {
+#code-container {
     height: 100%;
     width: 700px;
-    border: none;
-    float: left;
     border-right: 1px solid #ccc;
+    float: left;
+}
+
+#code {
+    height: 100%;
+    width: 100%;
+    border: none;
+}
+
+#fact-info {
+    line-height: 24px;
+    padding: 12px 24px;
+    border-bottom: 1px solid #ccc;
 }
 
 #fact-drawer {
@@ -108,4 +120,16 @@ body {
     height: 100%;
     width: 400px;
     float: left;
+}
+
+.actual-fact-info {
+    font-size: 16px;
+    font-family: monospace;
+}
+
+.param-input {
+    border: none;
+    font-size: 16px;
+    font-family: monospace;
+    width: 16px;
 }

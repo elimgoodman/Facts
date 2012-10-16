@@ -13,7 +13,11 @@
             <ul id="fact-list">
             </ul>
         </div>
-        <textarea class="code-area" id="code"></textarea>
+        <div id="code-container">
+            <div id="fact-info">
+            </div>
+            <textarea class="code-area" id="code"></textarea>
+        </div>
         <textarea class="code-area" id="output"></textarea>
         <div id="command-bar">
             <span class="colon">:</span> <input class="command-input" />
@@ -29,6 +33,17 @@
             <% } %>
         </span>
         <%= name %>
+    </script>
+
+    <script type="text/html" id="main-block-fact-info-tmpl">
+        <span class="fact-type main_block">m</span>
+        <%= name %>
+    </script>
+
+    <script type="text/html" id="fn-fact-info-tmpl">
+        <span class="fact-type fn">fn</span>
+        <%= name %>
+        (<input class="param-input" />):None
     </script>
 </html>
 
