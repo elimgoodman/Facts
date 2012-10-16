@@ -82,7 +82,7 @@ $(function(){
         tagName: 'div',
         className: 'actual-fact-info',
         events: {
-            'keydown .param-input': 'resizeParamInput'
+            'keyup .param-input': 'resizeParamInput'
         },
         resizeParamInput: function(e) {
             var t = $(e.target);
@@ -139,6 +139,9 @@ $(function(){
         initialize: function() {
             this.$el.val("");
             Facts.SelectedFact.bind('change', this.renderAndFocus, this);
+            this.code_mirror = CodeMirror.fromTextArea(this.el, {
+                lineNumbers: true
+            });
         },
         renderAndFocus: function() {
             this.render();
