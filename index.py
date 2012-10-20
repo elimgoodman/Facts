@@ -84,9 +84,11 @@ def execute():
         statements = plyer.parser.parse(fact.body, lexer=plyer.lexer)
         #FIXME: varname hack
         #FIXME: eval hack, this is awful
+        params = fact.parseParamsFromMetadata()
         fn_def = exprs.FunctionDef(exprs.ParamList(), statements)
         scope["$" + fact.name] = fn_def.evaluate({})
 
+    print scope
     (main_block, created) = facts.Fact.objects.get_or_create(fact_type="main_block")
     data = main_block.body
 

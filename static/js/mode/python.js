@@ -76,10 +76,10 @@ CodeMirror.defineMode("python", function(conf, parserConf) {
         var ch = stream.peek();
         
         // Handle Comments
-        if (ch === '#') {
-            stream.skipToEnd();
-            return 'comment';
-        }
+        //if (ch === '#') {
+            //stream.skipToEnd();
+            //return 'comment';
+        //}
         
         // Handle Number Literals
         if (stream.match(/^[0-9\.]/, false)) {

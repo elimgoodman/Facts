@@ -5,7 +5,10 @@ class ParseError(Exception):
     def __init__(self, line_no, elem):
         self.line_no = line_no
         self.elem = elem
-
+    
+    def __str__(self):
+        return "%s at line %d" % (self.elem, self.line_no)
+    
 debug = False
 
 tokens = (
@@ -13,12 +16,13 @@ tokens = (
     'NUMBER',
     'PRINT', #FIXME: this should just be a function/part of module
     'STRING',
-    'FUNCTION'
+    'FUNCTION',
+    'ARGNAME'
     )
 
 # Tokens
 
-literals = ['=', '(', ')', '{', '}', ',']
+literals = ['=', '(', ')', '{', '}', ',', ':']
 
 t_PRINT = r'print'
 t_FUNCTION = r'function'
@@ -27,6 +31,11 @@ t_STRING = r'\"([^\\\n]|(\\.))*?\"'
 def t_VARNAME(t):
     r'\$[a-zA-Z_][a-zA-Z0-9_]*'
     t.value = e.Varname(t.value)
+    return t
+
+def t_ARGNAME(t):
+    r'\#[a-zA-Z_][a-zA-Z0-9_]*'
+    t.value = e.ArgName(t.value)
     return t
 
 def t_NUMBER(t):
@@ -111,11 +120,25 @@ def p_expression_string(t):
     
     t[0] = e.String(t[1][1:-1])
 
+def p_named_func_arg(t):
+    '''named_func_arg : ARGNAME ':' expression'''
+    t[0] = e.NamedFuncArg(t[1], t[3])
+
+def p_named_func_args(t):
+    '''named_func_args : named_func_args ',' named_func_arg
+                    | named_func_arg '''
+
+    create_or_append(t, e.ArgList, 1, 3)
+
 def p_func_args(t):
     '''func_args : func_args ',' expression
                     | expression '''
 
     create_or_append(t, e.ArgList, 1, 3)
+
+def p_execute_fn_with_named_args(t):
+    '''execute_fn : VARNAME '{' named_func_args '}' '''
+    t[0] = e.FunctionEval(t[1], t[3])
 
 def p_execute_fn_with_args(t):
     '''execute_fn : VARNAME '(' func_args ')' '''

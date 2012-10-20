@@ -145,7 +145,7 @@ $(function(){
             this.$el.val("");
             Facts.SelectedFact.bind('change', this.renderAndFocus, this);
             CodeMirror.keyMap.basic['Esc'] = function(cm) {
-                console.log(cm);
+                //FIXME: make escape blur
             };
             this.code_mirror = CodeMirror.fromTextArea(this.el, {});
 

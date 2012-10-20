@@ -48,6 +48,21 @@ class Assignment(Expr):
     def evaluate(self, scope):
         scope[self.left.get_name()] = self.right.evaluate(scope)
 
+class ArgName(Expr):
+
+    def __init__(self, name):
+        self.name = name
+
+    def evaluate(self, scope):
+        print "evaled"
+        pass
+
+    def get_name(self):
+        return self.name
+
+    def __repr__(self):
+        return "(ARG: %s)" % (self.name)
+
 class Varname(Expr):
 
     def __init__(self, name):
@@ -154,3 +169,11 @@ class ArgList(Expr):
     def __repr__(self):
         return "(ARGS: %s)" % (self.args)
 
+class NamedFuncArg(Expr):
+
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+    def __repr__(self):
+        return "%s => %s" % (self.name, self.value)
