@@ -15,7 +15,9 @@ $(function(){
         },
         initialize: function() {
             this.model.bind('change', this.render, this);
+            this.postInit();
         },
+        postInit: $.noop
     });
 
     Facts.Fact = Backbone.Model.extend({
@@ -23,7 +25,8 @@ $(function(){
             selected: false,
             name: "",
             fact_type: null,
-            body: ""
+            body: "",
+            metadata: {}
         },
         idAttribute: "null",
         select: function() {
@@ -82,21 +85,13 @@ $(function(){
         tagName: 'div',
         className: 'actual-fact-info',
         events: {
-            'keyup .param-input': 'resizeParamInput'
+            'click .see-more': 'toggleMoreInfo'
         },
-        resizeParamInput: function(e) {
-            var t = $(e.target);
-            var w = t.innerWidth();
-            var new_width;
-            var char_width = 10;
-            //FIXME: put in a regex check for the key
-            if(e.keyCode == 8) { //backspace
-                new_width = w - char_width;
-            } else {
-                new_width = w + char_width;
-            }
-
-            $(e.target).width(new_width);
+        toggleMoreInfo: function(e) {
+            this.$(".more-fact-info").slideToggle(100);
+        },
+        postRender: function() {
+            this.$('.fact-info-input').autoGrowInput();
         },
         template: function(context) {
             var fact_type = this.model.get('fact_type');
@@ -166,6 +161,13 @@ $(function(){
             var f = Facts.SelectedFact.get();
             var v = new Facts.FactInfoView({model: f});
             this.$el.html(v.render().el);
+        },
+        getMetadata: function() {
+            var metadata = {};
+            this.$(".fact-info-input").each(function(){
+                metadata[$(this).attr('name')] = $(this).val();
+            });
+            return metadata;
         }
     });
 
@@ -247,19 +249,21 @@ $(function(){
                 console.log("INVALID PHRASE");
             }
         },
-        setCurrentFactBody: function() {
+        setCurrentFactFields: function() {
             var fact = Facts.SelectedFact.get();
             if(fact) {
                 var body = Facts.TheEditor.getVal();
+                var metadata = Facts.TheFactInfo.getMetadata();
                 fact.set({
-                    body: body
+                    body: body,
+                    metadata: metadata
                 });
             }
 
             return fact;
         },
         writeCurrentBuffer: function(args) {
-            var fact = this.setCurrentFactBody();
+            var fact = this.setCurrentFactFields();
             if(fact) {
                 fact.save();
             }
@@ -283,7 +287,7 @@ $(function(){
             Facts.SelectedFact.set(fact);
         },
         writeAllBuffers: function(args, cb) {
-            this.setCurrentFactBody();
+            this.setCurrentFactFields();
             Facts.AllFacts.invoke('save');
             if(cb) {
                 cb(args);
@@ -313,6 +317,13 @@ $(function(){
     //Global keys
     Mousetrap.bind(":", function(){
         Facts.TheCommandBar.show();
+    });
+    
+    $(".escapable").live('keydown', function(e){
+        if(e.keyCode == 27) {
+            e.preventDefault();
+            $(this).blur();
+        }
     });
 
     $("body").focus();

@@ -10,6 +10,7 @@
         <script src="{{ url_for('static', filename='js/backbone.js') }}" type="text/javascript"></script>
         <script src="{{ url_for('static', filename='js/codemirror.js') }}" type="text/javascript"></script>
         <script src="{{ url_for('static', filename='js/mode/python.js') }}" type="text/javascript"></script>
+        <script src="{{ url_for('static', filename='js/autogrow.js') }}" type="text/javascript"></script>
         <script src="{{ url_for('static', filename='js/index.js') }}" type="text/javascript"></script>
     </head>
     <body>
@@ -18,7 +19,7 @@
             </ul>
         </div>
         <div id="code-container">
-            <div id="fact-info">
+            <div id="fact-info" class="arrow_box">
             </div>
             <textarea class="code-area" id="code"></textarea>
         </div>
@@ -47,7 +48,19 @@
     <script type="text/html" id="fn-fact-info-tmpl">
         <span class="fact-type fn">fn</span>
         <%= name %>
-        (<input class="param-input" />):None
+        <a class="see-more" href="#">...</a>
+        <div class="more-fact-info">
+            <table>
+                <tr>
+                    <td><label class="fact-info-label">takes:</label></td>
+                    <td><input class="fact-info-input escapable" name="takes" value="<%= metadata.takes %>" /></li></td>
+                </tr>
+                <tr>
+                    <td><label class="fact-info-label">returns:</label></td>
+                    <td><input class="fact-info-input escapable" name="returns" value="<%= metadata.returns %>"/></tr></td>
+                </tr>
+            <table>
+        </div>
     </script>
 </html>
 

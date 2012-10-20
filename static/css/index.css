@@ -115,6 +115,7 @@ body {
 }
 
 #output {
+    display: none;
     background: black;
     border: none;
     color: white;
@@ -138,4 +139,54 @@ body {
 .CodeMirror-lines {
     padding: 18px 24px;
     line-height: 24px;
+}
+
+.see-more {
+    text-decoration: none;
+    border: 1px solid #ccc;
+    background: white;
+    padding: 3px;
+}
+
+.arrow_box {
+    position: relative;
+}
+.arrow_box:after, .arrow_box:before {
+    top: 100%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+}
+
+.arrow_box:after {
+    border-color: rgba(238, 238, 238, 0);
+    border-top-color: #eee;
+    border-width: 10px;
+    left: 50%;
+    margin-left: -325px;
+}
+.arrow_box:before {
+    border-color: rgba(204, 204, 204, 0);
+    border-top-color: #ccc;
+    border-width: 11px;
+    left: 50%;
+    margin-left: -326px;
+}
+
+.fact-info-label {
+    font-weight: bold;
+}
+
+.fact-info-input {
+    border: 1px solid #ccc;
+    padding: 3px;
+    font-family: monospace;
+}
+
+.more-fact-info {
+    margin-top: 9px;
+    display: none;
 }

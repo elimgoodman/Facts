@@ -66,6 +66,7 @@ def create_or_update_fact():
     f.name = request.json['name']
     f.body = request.json['body']
     f.fact_type = request.json['fact_type']
+    f.metadata = request.json['metadata']
     f.save()
 
     return jsonify(resp=f)
