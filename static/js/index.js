@@ -26,9 +26,19 @@ $(function(){
             name: "",
             fact_type: null,
             body: "",
-            metadata: {}
+            metadata: {},
+            fact_id: null
         },
-        idAttribute: "null",
+        parse: function(r) {
+            if(r.resp) {
+                //from post
+                return r.resp;
+            } else {
+                //from collection
+                return r;
+            }
+        },
+        idAttribute: "fact_id",
         select: function() {
             this.set({selected: true});
         },
@@ -128,23 +138,27 @@ $(function(){
         },
         maybeBlur: function(e) {
             if(e.keyCode == 27) { //esc
-                this.$el.blur();
+                this.code_mirror.blur();
             }
         },
         initialize: function() {
             this.$el.val("");
             Facts.SelectedFact.bind('change', this.renderAndFocus, this);
+            CodeMirror.keyMap.basic['Esc'] = function(cm) {
+                console.log(cm);
+            };
             this.code_mirror = CodeMirror.fromTextArea(this.el, {});
+
         },
         renderAndFocus: function() {
             this.render();
-            this.$el.focus();
+            this.code_mirror.focus();
         },
         render: function() {
-            this.$el.val(Facts.SelectedFact.get().get('body'));
+            this.code_mirror.setValue(Facts.SelectedFact.get().get('body'));
         },
         getVal: function() {
-            return this.$el.val();
+            return this.code_mirror.getValue();
         }
     });
 
@@ -264,9 +278,11 @@ $(function(){
         },
         writeCurrentBuffer: function(args) {
             var fact = this.setCurrentFactFields();
+            console.log(fact.toJSON());
             if(fact) {
                 fact.save();
             }
+            console.log(fact.toJSON());
         },
         createNewFn: function(args) {
             var fn_name = args[0];
