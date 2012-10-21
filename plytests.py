@@ -1,4 +1,3 @@
-import random
 import unittest
 import lang.plyer as plyer
 import lang.exprs as e

@@ -136,12 +136,19 @@ class FunctionEval(Expr):
         return promise.evaluate(scope)
 
     def bring_args_into_scope(self, scope, params, args):
+        if type(params) is NamedParamSet:
+            for param in params.params:
+                for arg in args.args:
+                    if arg.arg_name.name == param.get_arg_name():
+                        value = arg.value.evaluate(scope)
+                        scope[param.get_var_name()] = value
+        else:
+            i = 0
+            for param in params.params:
+                scope[param.get_name()] = args.args[i].evaluate(scope)
+                i = i + 1
 
-        i = 0
-        for param in params.params:
-            scope[param.get_name()] = args.args[i].evaluate(scope)
-            i = i + 1
-
+        print scope
         return scope
 
     def __repr__(self):
@@ -153,6 +160,31 @@ class ParamList(Expr):
         self.params = []
 
     def append(self, param):
+        self.params.append(param)
+
+    def __repr__(self):
+        return "(PARAMS: %s)" % (self.params)
+
+class NamedParam(Expr):
+    def __init__(self, name, typ):
+        self.name = name
+        self.typ = typ
+
+    def get_var_name(self):
+        return "$" + self.name
+
+    def get_arg_name(self):
+        return "#" + self.name
+
+    def __repr__(self):
+        return "(%s:%s)" % (self.name, self.typ)
+
+class NamedParamSet(Expr):
+
+    def __init__(self):
+        self.params = []
+
+    def add(self, param):
         self.params.append(param)
 
     def __repr__(self):
@@ -172,8 +204,8 @@ class ArgList(Expr):
 class NamedFuncArg(Expr):
 
     def __init__(self, name, value):
-        self.name = name
+        self.arg_name = name
         self.value = value
 
     def __repr__(self):
-        return "%s => %s" % (self.name, self.value)
+        return "%s => %s" % (self.arg_name, self.value)

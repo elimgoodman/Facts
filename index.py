@@ -82,13 +82,21 @@ def execute():
     for fact in facts_not_main:
         plyer.lexer.input(fact.body)
         statements = plyer.parser.parse(fact.body, lexer=plyer.lexer)
+
         #FIXME: varname hack
         #FIXME: eval hack, this is awful
+        param_set = exprs.NamedParamSet()
         params = fact.parseParamsFromMetadata()
-        fn_def = exprs.FunctionDef(exprs.ParamList(), statements)
+        for name, typ in params.iteritems():
+            param_obj = exprs.NamedParam(name, typ)
+            param_set.add(param_obj)
+
+        fn_def = exprs.FunctionDef(param_set, statements)
+        
+        #I'm pretty sure I have to build up the scope and then map 
+        #through everything with eval and that scope
         scope["$" + fact.name] = fn_def.evaluate({})
 
-    print scope
     (main_block, created) = facts.Fact.objects.get_or_create(fact_type="main_block")
     data = main_block.body
 

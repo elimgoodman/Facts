@@ -7,3 +7,13 @@ class Fact(mongo.Document):
     body = mongo.StringField()
     metadata = mongo.DictField()
 
+    def parseParamsFromMetadata(self):
+        #TODO: make sure the current fact is the right type,
+        #has valid metadata
+        params = {}
+        for pair in self.metadata['takes'].split(","):
+            (name, typ) = pair.split(":")
+            params[name.strip()] = typ.strip()
+
+        return params
+

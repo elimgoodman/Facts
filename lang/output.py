@@ -3,7 +3,7 @@ class StdOut(object):
 
     @classmethod
     def writeLn(self, txt):
-        self.out += txt + "\n"
+        self.out += str(txt) + "\n"
 
     @classmethod
     def flush(self):
