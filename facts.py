@@ -11,8 +11,9 @@ class Fact(mongo.Document):
         #TODO: make sure the current fact is the right type,
         #has valid metadata
         params = {}
-        if self.metadata.has_key('takes'):
+        if self.metadata.has_key('takes') and self.metadata['takes']:
             for pair in self.metadata['takes'].split(","):
+                print pair
                 (name, typ) = pair.split(":")
                 params[name.strip()] = typ.strip()
 
