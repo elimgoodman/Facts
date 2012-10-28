@@ -2,12 +2,16 @@ import unittest
 import lang.plyer as plyer
 import lang.exprs as e
 import lang.typechecker as t
+from lang.output import StdOut as std
 
 class TestPly(unittest.TestCase):
 
     def setUp(self):
         pass
     
+    def tearDown(self):
+        print "done"
+
     def testFnCallWithOneNamedArg(self):
         parsed = self.parse('$foo{#bar: "baz"}')
         args = parsed.statements[0].args
