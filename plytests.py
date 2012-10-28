@@ -39,7 +39,22 @@ class TestPly(unittest.TestCase):
             '$foo': e.FunctionDef(param_set, e.StatementList()).evaluate({})
         }
 
-        self.execute(parsed, scope)
+        res = self.typecheck(parsed, scope)
+        self.assertEqual(False, res.has_errors())
+
+    def testTypecheckFailsParamCheck(self):
+        parsed = self.parse('$foo{#some_string: 2}')
+
+        param_set = e.NamedParamSet()
+        param_obj = e.NamedParam('#some_string', 'String')
+        param_set.add(param_obj)
+
+        scope = {
+            '$foo': e.FunctionDef(param_set, e.StatementList()).evaluate({})
+        }
+
+        res = self.typecheck(parsed, scope)
+        self.assertEqual(True, res.has_errors())
 
     def parse(self, data):
         plyer.lexer.input(data)

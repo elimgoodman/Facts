@@ -43,7 +43,7 @@ class Assignment(Expr):
         self.right = right
 
     def __repr__(self):
-        return "%s = %s" % (self.left, self.right)
+        return "(ASSIGNMENT: %s = %s)" % (self.left, self.right)
 
     def evaluate(self, scope):
         scope[self.left.get_name()] = self.right.evaluate(scope)
@@ -61,7 +61,7 @@ class ArgName(Expr):
         return self.name
 
     def __repr__(self):
-        return "(ARG: %s)" % (self.name)
+        return "(ARG_NAME: %s)" % (self.name)
 
 class Varname(Expr):
 
@@ -75,7 +75,7 @@ class Varname(Expr):
         return self.name
 
     def __repr__(self):
-        return "(VAR: %s)" % (self.name)
+        return "(VAR_NAME: %s)" % (self.name)
 
 class Number(Expr):
 
@@ -86,7 +86,7 @@ class Number(Expr):
         return self.value
 
     def __repr__(self):
-        return "(NUM: %d)" % (self.value)
+        return "(NUMBER: %d)" % (self.value)
 
 class String(Expr):
 
@@ -122,7 +122,7 @@ class FunctionDef(Expr):
         return FunctionPromise(scope, self)
 
     def __repr__(self):
-        return "(FN: %s -> %s)" % (self.params, self.statements)
+        return "(FN_DEF: %s -> %s)" % (self.params, self.statements)
 
 class FunctionEval(Expr):
 
@@ -152,7 +152,7 @@ class FunctionEval(Expr):
         return scope
 
     def __repr__(self):
-        return "(EVAL FN: %s <- %s)" % (self.fn_var_name, self.args)
+        return "(FN_EVAL: %s <- %s)" % (self.fn_var_name, self.args)
 
 class ParamList(Expr):
 
@@ -163,7 +163,7 @@ class ParamList(Expr):
         self.params.append(param)
 
     def __repr__(self):
-        return "(PARAMS: %s)" % (self.params)
+        return "(PARAM_LIST: %s)" % (self.params)
 
 class NamedParam(Expr):
     def __init__(self, name, typ):
@@ -177,7 +177,7 @@ class NamedParam(Expr):
         return "#" + self.name
 
     def __repr__(self):
-        return "(%s:%s)" % (self.name, self.typ)
+        return "(NAMED_PARAM: %s:%s)" % (self.name, self.typ)
 
 class NamedParamSet(Expr):
 
@@ -188,7 +188,7 @@ class NamedParamSet(Expr):
         self.params.append(param)
 
     def __repr__(self):
-        return "(PARAMS: %s)" % (self.params)
+        return "(NAMED_PARAM_SET: %s)" % (self.params)
 
 class ArgList(Expr):
 
@@ -198,8 +198,15 @@ class ArgList(Expr):
     def append(self, arg):
         self.args.append(arg)
 
+    def as_dict(self):
+        arg_dict = {}
+        for arg in self.args:
+            arg_dict[arg.arg_name.get_name()] = arg.value
+
+        return arg_dict
+
     def __repr__(self):
-        return "(ARGS: %s)" % (self.args)
+        return "(ARG_LIST: %s)" % (self.args)
 
 class NamedFuncArg(Expr):
 
