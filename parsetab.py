@@ -5,9 +5,9 @@ _tabversion = '3.2'
 
 _lr_method = 'LALR'
 
-_lr_signature = '|C\nT\xfd\x8btx(\ntK\x84ED\x18'
+_lr_signature = 'nlj\xf1\xcb?\xaf\xb0\x060\x8d\x90S\xa1\x89\xde'
     
-_lr_action_items = {'FUNCTION':([2,12,13,27,30,],[6,6,6,6,6,]),'STRING':([2,12,13,27,30,],[7,7,7,7,7,]),')':([7,8,9,10,13,18,19,20,24,25,26,29,33,37,39,],[-10,-20,-9,-8,19,26,-18,-15,31,-6,-17,-16,-14,-5,-7,]),'VARNAME':([0,1,2,3,5,7,8,9,10,11,12,13,15,16,17,19,26,27,29,30,32,36,38,39,],[4,-19,10,-2,4,-10,-20,-9,-8,-3,10,10,-1,25,-4,-18,-17,10,-16,10,37,4,4,-7,]),'=':([4,],[12,]),'NUMBER':([2,12,13,27,30,],[9,9,9,9,9,]),',':([7,8,9,10,18,19,20,21,22,24,25,26,29,33,34,35,37,39,],[-10,-20,-9,-8,27,-18,-15,-13,28,32,-6,-17,-16,-14,-12,-11,-5,-7,]),'(':([4,6,10,],[13,16,13,]),'PRINT':([0,1,3,5,7,8,9,10,11,15,17,19,26,29,36,38,39,],[2,-19,-2,2,-10,-20,-9,-8,-3,-1,-4,-18,-17,-16,2,2,-7,]),'{':([4,10,31,],[14,14,36,]),':':([23,],[30,]),'}':([1,3,7,8,9,10,11,15,17,19,21,22,26,29,34,35,38,39,],[-19,-2,-10,-20,-9,-8,-3,-1,-4,-18,-13,29,-17,-16,-12,-11,39,-7,]),'ARGNAME':([14,28,],[23,23,]),'$end':([1,3,5,7,8,9,10,11,15,17,19,26,29,39,],[-19,-2,0,-10,-20,-9,-8,-3,-1,-4,-18,-17,-16,-7,]),}
+_lr_action_items = {'FUNCTION':([1,4,13,14,29,32,],[7,7,7,7,7,7,]),'RETURN':([0,2,5,6,8,9,10,11,12,16,17,19,21,28,31,38,40,41,],[1,-20,-2,1,-11,-21,-10,-9,-4,-3,-1,-5,-19,-18,-17,1,1,-8,]),'STRING':([1,4,13,14,29,32,],[8,8,8,8,8,8,]),')':([8,9,10,11,14,20,21,22,26,27,28,31,35,39,41,],[-11,-21,-10,-9,21,28,-19,-16,33,-7,-18,-17,-15,-6,-8,]),'VARNAME':([0,1,2,4,5,6,8,9,10,11,12,13,14,16,17,18,19,21,28,29,31,32,34,38,40,41,],[3,11,-20,11,-2,3,-11,-21,-10,-9,-4,11,11,-3,-1,27,-5,-19,-18,11,-17,11,39,3,3,-8,]),'=':([3,],[13,]),'NUMBER':([1,4,13,14,29,32,],[10,10,10,10,10,10,]),',':([8,9,10,11,20,21,22,23,24,26,27,28,31,35,36,37,39,41,],[-11,-21,-10,-9,29,-19,-16,-14,30,34,-7,-18,-17,-15,-13,-12,-6,-8,]),'(':([3,7,11,],[14,18,14,]),'PRINT':([0,2,5,6,8,9,10,11,12,16,17,19,21,28,31,38,40,41,],[4,-20,-2,4,-11,-21,-10,-9,-4,-3,-1,-5,-19,-18,-17,4,4,-8,]),'{':([3,11,33,],[15,15,38,]),':':([25,],[32,]),'}':([2,5,8,9,10,11,12,16,17,19,21,23,24,28,31,36,37,40,41,],[-20,-2,-11,-21,-10,-9,-4,-3,-1,-5,-19,-14,31,-18,-17,-13,-12,41,-8,]),'ARGNAME':([15,30,],[25,25,]),'$end':([2,5,6,8,9,10,11,12,16,17,19,21,28,31,41,],[-20,-2,0,-11,-21,-10,-9,-4,-3,-1,-5,-19,-18,-17,-8,]),}
 
 _lr_action = { }
 for _k, _v in _lr_action_items.items():
@@ -16,7 +16,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'func_params':([16,],[24,]),'named_func_arg':([14,28,],[21,34,]),'execute_fn':([0,2,5,12,13,27,30,36,38,],[1,8,1,8,8,8,8,1,1,]),'func_args':([13,],[18,]),'statement':([0,5,36,38,],[3,15,3,15,]),'statement_list':([0,36,],[5,38,]),'named_func_args':([14,],[22,]),'expression':([2,12,13,27,30,],[11,17,20,33,35,]),}
+_lr_goto_items = {'func_params':([18,],[26,]),'named_func_arg':([15,30,],[23,36,]),'execute_fn':([0,1,4,6,13,14,29,32,38,40,],[2,9,9,2,9,9,9,9,2,2,]),'func_args':([14,],[20,]),'statement':([0,6,38,40,],[5,17,5,17,]),'statement_list':([0,38,],[6,40,]),'named_func_args':([15,],[24,]),'expression':([1,4,13,14,29,32,],[12,16,19,22,35,37,]),}
 
 _lr_goto = { }
 for _k, _v in _lr_goto_items.items():
@@ -26,24 +26,25 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> statement_list","S'",1,None,None,None),
-  ('statement_list -> statement_list statement','statement_list',2,'p_statement_list','/Users/eli/dev/facts/lang/plyer.py',87),
-  ('statement_list -> statement','statement_list',1,'p_statement_list','/Users/eli/dev/facts/lang/plyer.py',88),
-  ('statement -> PRINT expression','statement',2,'p_statement_print','/Users/eli/dev/facts/lang/plyer.py',92),
-  ('statement -> VARNAME = expression','statement',3,'p_statement_assign','/Users/eli/dev/facts/lang/plyer.py',97),
-  ('func_params -> func_params , VARNAME','func_params',3,'p_func_params','/Users/eli/dev/facts/lang/plyer.py',101),
-  ('func_params -> VARNAME','func_params',1,'p_func_params','/Users/eli/dev/facts/lang/plyer.py',102),
-  ('expression -> FUNCTION ( func_params ) { statement_list }','expression',7,'p_expression_function_def','/Users/eli/dev/facts/lang/plyer.py',107),
-  ('expression -> VARNAME','expression',1,'p_expression_varname','/Users/eli/dev/facts/lang/plyer.py',111),
-  ('expression -> NUMBER','expression',1,'p_expression_number','/Users/eli/dev/facts/lang/plyer.py',115),
-  ('expression -> STRING','expression',1,'p_expression_string','/Users/eli/dev/facts/lang/plyer.py',119),
-  ('named_func_arg -> ARGNAME : expression','named_func_arg',3,'p_named_func_arg','/Users/eli/dev/facts/lang/plyer.py',124),
-  ('named_func_args -> named_func_args , named_func_arg','named_func_args',3,'p_named_func_args','/Users/eli/dev/facts/lang/plyer.py',128),
-  ('named_func_args -> named_func_arg','named_func_args',1,'p_named_func_args','/Users/eli/dev/facts/lang/plyer.py',129),
-  ('func_args -> func_args , expression','func_args',3,'p_func_args','/Users/eli/dev/facts/lang/plyer.py',134),
-  ('func_args -> expression','func_args',1,'p_func_args','/Users/eli/dev/facts/lang/plyer.py',135),
-  ('execute_fn -> VARNAME { named_func_args }','execute_fn',4,'p_execute_fn_with_named_args','/Users/eli/dev/facts/lang/plyer.py',140),
-  ('execute_fn -> VARNAME ( func_args )','execute_fn',4,'p_execute_fn_with_args','/Users/eli/dev/facts/lang/plyer.py',144),
-  ('execute_fn -> VARNAME ( )','execute_fn',3,'p_execute_fn_no_args','/Users/eli/dev/facts/lang/plyer.py',148),
-  ('statement -> execute_fn','statement',1,'p_statement_execute_fn','/Users/eli/dev/facts/lang/plyer.py',152),
-  ('expression -> execute_fn','expression',1,'p_expression_execute_fn','/Users/eli/dev/facts/lang/plyer.py',156),
+  ('statement_list -> statement_list statement','statement_list',2,'p_statement_list','/Users/eli/dev/facts/lang/plyer.py',89),
+  ('statement_list -> statement','statement_list',1,'p_statement_list','/Users/eli/dev/facts/lang/plyer.py',90),
+  ('statement -> PRINT expression','statement',2,'p_statement_print','/Users/eli/dev/facts/lang/plyer.py',94),
+  ('statement -> RETURN expression','statement',2,'p_statement_return','/Users/eli/dev/facts/lang/plyer.py',99),
+  ('statement -> VARNAME = expression','statement',3,'p_statement_assign','/Users/eli/dev/facts/lang/plyer.py',104),
+  ('func_params -> func_params , VARNAME','func_params',3,'p_func_params','/Users/eli/dev/facts/lang/plyer.py',108),
+  ('func_params -> VARNAME','func_params',1,'p_func_params','/Users/eli/dev/facts/lang/plyer.py',109),
+  ('expression -> FUNCTION ( func_params ) { statement_list }','expression',7,'p_expression_function_def','/Users/eli/dev/facts/lang/plyer.py',114),
+  ('expression -> VARNAME','expression',1,'p_expression_varname','/Users/eli/dev/facts/lang/plyer.py',118),
+  ('expression -> NUMBER','expression',1,'p_expression_number','/Users/eli/dev/facts/lang/plyer.py',122),
+  ('expression -> STRING','expression',1,'p_expression_string','/Users/eli/dev/facts/lang/plyer.py',126),
+  ('named_func_arg -> ARGNAME : expression','named_func_arg',3,'p_named_func_arg','/Users/eli/dev/facts/lang/plyer.py',131),
+  ('named_func_args -> named_func_args , named_func_arg','named_func_args',3,'p_named_func_args','/Users/eli/dev/facts/lang/plyer.py',135),
+  ('named_func_args -> named_func_arg','named_func_args',1,'p_named_func_args','/Users/eli/dev/facts/lang/plyer.py',136),
+  ('func_args -> func_args , expression','func_args',3,'p_func_args','/Users/eli/dev/facts/lang/plyer.py',141),
+  ('func_args -> expression','func_args',1,'p_func_args','/Users/eli/dev/facts/lang/plyer.py',142),
+  ('execute_fn -> VARNAME { named_func_args }','execute_fn',4,'p_execute_fn_with_named_args','/Users/eli/dev/facts/lang/plyer.py',147),
+  ('execute_fn -> VARNAME ( func_args )','execute_fn',4,'p_execute_fn_with_args','/Users/eli/dev/facts/lang/plyer.py',151),
+  ('execute_fn -> VARNAME ( )','execute_fn',3,'p_execute_fn_no_args','/Users/eli/dev/facts/lang/plyer.py',155),
+  ('statement -> execute_fn','statement',1,'p_statement_execute_fn','/Users/eli/dev/facts/lang/plyer.py',159),
+  ('expression -> execute_fn','expression',1,'p_expression_execute_fn','/Users/eli/dev/facts/lang/plyer.py',163),
 ]

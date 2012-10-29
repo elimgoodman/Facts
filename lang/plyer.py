@@ -17,6 +17,7 @@ tokens = (
     'PRINT', #FIXME: this should just be a function/part of module
     'STRING',
     'FUNCTION',
+    'RETURN',
     'ARGNAME'
     )
 
@@ -26,6 +27,7 @@ literals = ['=', '(', ')', '{', '}', ',', ':']
 
 t_PRINT = r'print'
 t_FUNCTION = r'function'
+t_RETURN = r'return'
 t_STRING = r'\"([^\\\n]|(\\.))*?\"'
 
 def t_VARNAME(t):
@@ -92,6 +94,11 @@ def p_statement_print(t):
     'statement : PRINT expression'
 
     t[0] = e.PrintStmt(t[2])
+
+def p_statement_return(t):
+    'statement : RETURN expression'
+
+    t[0] = e.ReturnStmt(t[2])
 
 def p_statement_assign(t):
     '''statement : VARNAME '=' expression'''

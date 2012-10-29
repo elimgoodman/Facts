@@ -1,16 +1,17 @@
 import unittest
 import lang.plyer as plyer
 import lang.exprs as e
-import lang.typechecker as t
+from lang.types import Typechecker
+from lang.interpreter import Interpreter
 from lang.output import StdOut as std
 
 class TestPly(unittest.TestCase):
 
     def setUp(self):
-        pass
+        std.flush()
     
     def tearDown(self):
-        print "done"
+        pass
 
     def testFnCallWithOneNamedArg(self):
         parsed = self.parse('$foo{#bar: "baz"}')
@@ -24,10 +25,6 @@ class TestPly(unittest.TestCase):
         self.assertEqual(2, len(args.args))
         self.assertEqual(e.NamedFuncArg, type(args.args[0]))
         self.assertEqual(e.NamedFuncArg, type(args.args[1]))
-
-    def testFnCallReal(self):
-        parsed = self.parse('$sayHello{#name: "Eli", #age: 27}')
-        parsed = self.parse('''print "Greetz"''')
 
     def testFnCallNoParams(self):
         parsed = self.parse('''$sayBye()''')
@@ -60,16 +57,57 @@ class TestPly(unittest.TestCase):
         res = self.typecheck(parsed, scope)
         self.assertEqual(True, res.has_errors())
 
+    def testReturnStmt(self):
+        main = self.parse('$a = $foo()\nprint $a')
+        fn_body = self.parse('return "Hello world"')
+
+        scope = {
+            '$foo': e.FunctionDef(e.ParamList(), fn_body).evaluate({})
+        }
+        
+        self.interpet(main, scope)
+        self.assertEqual("Hello world\n", std.flush())
+
+    def testReturnExitsFn(self):
+        main = self.parse('$a = $foo()\nprint $a')
+        fn_body = self.parse('return "Hello world"\nprint "Foo"')
+
+        scope = {
+            '$foo': e.FunctionDef(e.ParamList(), fn_body).evaluate({})
+        }
+        
+        self.interpet(main, scope)
+        self.assertEqual("Hello world\n", std.flush())
+
+    def testInterpretPrintNumber(self):
+        main = self.parse('print 2')
+
+        self.interpet(main, {})
+        self.assertEqual("2\n", std.flush())
+
+    def testInterpretPrintString(self):
+        main = self.parse('print "Hello"')
+
+        self.interpet(main, {})
+        self.assertEqual("Hello\n", std.flush())
+
+    def testInterpretAssignment(self):
+        main = self.parse('$a = "Hello"\nprint $a')
+
+        self.interpet(main, {})
+        self.assertEqual("Hello\n", std.flush())
+
     def parse(self, data):
         plyer.lexer.input(data)
         return plyer.parser.parse(data, lexer=plyer.lexer)
 
     def typecheck(self, parsed, scope):
-        c = t.Typechecker()
+        c = Typechecker()
         return c.check(parsed, scope)
     
-    def execute(self, parsed, scope):
-        return parsed.evaluate(scope)
+    def interpet(self, parsed, scope):
+        i = Interpreter()
+        i.interpet(parsed, scope)
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,9 +1,6 @@
 from lang.output import StdOut as std
 
-class Expr(object):
-
-    def evaluate(self, scope):
-        raise NotImplementedError("Unevaluable! in %s" % (self.__class__.__name__))
+class Expr(object): pass
 
 class StatementList(Expr):
 
@@ -12,10 +9,6 @@ class StatementList(Expr):
 
     def append(self, stmt):
         self.statements.append(stmt)
-
-    def evaluate(self, scope):
-        for stmt in self.statements:
-            stmt.evaluate(scope)
 
     def __repr__(self):
         out = "(STMTS: \n"
@@ -32,9 +25,13 @@ class PrintStmt(Expr):
     def __repr__(self):
         return "(PRINT %s)" % (self.value)
 
-    def evaluate(self, scope):
-       txt = self.value.evaluate(scope)
-       std.writeLn(txt)
+class ReturnStmt(Expr):
+        
+    def __init__(self, value):
+        self.value = value
+
+    def __repr__(self):
+        return "(RETURN %s)" % (self.value)
 
 class Assignment(Expr):
 
@@ -44,9 +41,6 @@ class Assignment(Expr):
 
     def __repr__(self):
         return "(ASSIGNMENT: %s = %s)" % (self.left, self.right)
-
-    def evaluate(self, scope):
-        scope[self.left.get_name()] = self.right.evaluate(scope)
 
 class ArgName(Expr):
 
@@ -68,9 +62,6 @@ class Varname(Expr):
     def __init__(self, name):
         self.name = name
 
-    def evaluate(self, scope):
-        return scope[self.name]
-
     def get_name(self):
         return self.name
 
@@ -82,9 +73,6 @@ class Number(Expr):
     def __init__(self, value):
         self.value = value
 
-    def evaluate(self, scope):
-        return self.value
-
     def __repr__(self):
         return "(NUMBER: %d)" % (self.value)
 
@@ -92,9 +80,6 @@ class String(Expr):
 
     def __init__(self, value):
         self.value = value
-
-    def evaluate(self, scope):
-        return self.value
 
     def __repr__(self):
         return "(STR: \"%s\")" % (self.value)
@@ -148,7 +133,6 @@ class FunctionEval(Expr):
                 scope[param.get_name()] = args.args[i].evaluate(scope)
                 i = i + 1
 
-        print scope
         return scope
 
     def __repr__(self):
