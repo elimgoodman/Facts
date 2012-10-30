@@ -28,14 +28,14 @@ class Typechecker(object):
         for stmt in parsed.statements:
             t = type(stmt)
             if t == e.FunctionEval:
-                fn_promise = scope[stmt.fn_var_name.get_name()]
-                params = fn_promise.fn_def.params
-                if type(params) == e.NamedParamSet:
-                    arg_dict = stmt.args.as_dict()
-                    for param in params.params:
-                        value = arg_dict[param.name]
-                        expected_expr = Types.TYPES_TO_EXPRS[param.typ]
-                        if type(value) != expected_expr:
-                            res.add_error()
+                fn_def = scope[stmt.fn_var_name.value]
+                params = fn_def.params
+                args = stmt.get_args()
+                print args
+                #for param in params.params:
+                    #value = arg_dict[param.name]
+                    #expected_expr = Types.TYPES_TO_EXPRS[param.typ]
+                    #if type(value) != expected_expr:
+                        #res.add_error()
 
         return res

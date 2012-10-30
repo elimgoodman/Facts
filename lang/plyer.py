@@ -12,32 +12,24 @@ class ParseError(Exception):
 debug = False
 
 tokens = (
-    'VARNAME',
+    'SYMBOL',
     'NUMBER',
-    'PRINT', #FIXME: this should just be a function/part of module
     'STRING',
-    'FUNCTION',
-    'RETURN',
-    'ARGNAME'
+    'RETURNER',
+    'ASSIGNER',
     )
 
 # Tokens
 
 literals = ['=', '(', ')', '{', '}', ',', ':']
 
-t_PRINT = r'print'
-t_FUNCTION = r'function'
-t_RETURN = r'return'
+t_RETURNER = r'->>'
+t_ASSIGNER = r'->'
 t_STRING = r'\"([^\\\n]|(\\.))*?\"'
 
-def t_VARNAME(t):
-    r'\$[a-zA-Z_][a-zA-Z0-9_]*'
-    t.value = e.Varname(t.value)
-    return t
-
-def t_ARGNAME(t):
-    r'\#[a-zA-Z_][a-zA-Z0-9_]*'
-    t.value = e.ArgName(t.value)
+def t_SYMBOL(t):
+    r'[a-z][a-zA-Z0-9]*'
+    t.value = e.Symbol(t.value)
     return t
 
 def t_NUMBER(t):
@@ -64,14 +56,6 @@ def t_error(t):
 import ply.lex as lex
 lexer = lex.lex(debug=debug)
 
-# Parsing rules
-
-#precedence = (
-    #('left','PLUS','MINUS'),
-    #('left','TIMES','DIVIDE'),
-    #('right','UMINUS'),
-    #)
-
 def create_or_append(p, klass, primary_pos, secondary_pos):
 
     if len(p) == 2 and p[1]:
@@ -90,33 +74,14 @@ def p_statement_list(p):
                | statement'''
     create_or_append(p, e.StatementList, 1, 2)
 
-def p_statement_print(t):
-    'statement : PRINT expression'
-
-    t[0] = e.PrintStmt(t[2])
-
 def p_statement_return(t):
-    'statement : RETURN expression'
+    'statement : expression RETURNER'
 
-    t[0] = e.ReturnStmt(t[2])
+    t[0] = e.ReturnStmt(t[1])
 
 def p_statement_assign(t):
-    '''statement : VARNAME '=' expression'''
-    t[0] = e.Assignment(t[1], t[3])
-
-def p_func_params(p):
-    '''func_params : func_params ',' VARNAME
-                    | VARNAME '''
-
-    create_or_append(p, e.ParamList, 1, 3)
-
-def p_expression_function_def(t):
-    '''expression : FUNCTION '(' func_params ')' '{' statement_list '}' '''
-    t[0] = e.FunctionDef(t[3], t[6])
-
-def p_expression_varname(t):
-    'expression : VARNAME'
-    t[0] = t[1]
+    '''statement : expression ASSIGNER SYMBOL'''
+    t[0] = e.Assignment(t[3], t[1])
 
 def p_expression_number(t):
     'expression : NUMBER'
@@ -127,33 +92,28 @@ def p_expression_string(t):
     
     t[0] = e.String(t[1][1:-1])
 
-def p_named_func_arg(t):
-    '''named_func_arg : ARGNAME ':' expression'''
-    t[0] = e.NamedFuncArg(t[1], t[3])
+def p_execute_fn_one_arg(t):
+    '''execute_fn : SYMBOL expression '''
+    args = e.ArgList()
+    args.append(t[2])
+    t[0] = e.FunctionEval(t[1], args)
 
-def p_named_func_args(t):
-    '''named_func_args : named_func_args ',' named_func_arg
-                    | named_func_arg '''
+def p_named_arg(t):
+    '''named_arg : SYMBOL ':' expression
+                | SYMBOL ':' SYMBOL'''
 
-    create_or_append(t, e.ArgList, 1, 3)
+    t[0] = e.NamedArg(t[1], t[3])
 
-def p_func_args(t):
-    '''func_args : func_args ',' expression
-                    | expression '''
+def p_named_args(t):
+    '''named_args : named_args named_arg
+                    | named_arg'''
+    create_or_append(t, e.ArgList, 1, 2)
 
-    create_or_append(t, e.ArgList, 1, 3)
-
-def p_execute_fn_with_named_args(t):
-    '''execute_fn : VARNAME '{' named_func_args '}' '''
+def p_execute_fn_many_args(t):
+    '''execute_fn : SYMBOL expression named_args'''
+    # add the unnamed arg to the beginning of the arg list
+    t[3].prepend(t[2])
     t[0] = e.FunctionEval(t[1], t[3])
-
-def p_execute_fn_with_args(t):
-    '''execute_fn : VARNAME '(' func_args ')' '''
-    t[0] = e.FunctionEval(t[1], t[3])
-
-def p_execute_fn_no_args(t):
-    '''execute_fn : VARNAME '(' ')' '''
-    t[0] = e.FunctionEval(t[1], e.ArgList())
 
 def p_statement_execute_fn(t):
     '''statement : execute_fn '''

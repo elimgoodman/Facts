@@ -17,14 +17,6 @@ class StatementList(Expr):
         out += ")"
         return out
     
-class PrintStmt(Expr):
-        
-    def __init__(self, value):
-        self.value = value
-
-    def __repr__(self):
-        return "(PRINT %s)" % (self.value)
-
 class ReturnStmt(Expr):
         
     def __init__(self, value):
@@ -35,12 +27,12 @@ class ReturnStmt(Expr):
 
 class Assignment(Expr):
 
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
+    def __init__(self, symbol, value):
+        self.symbol = symbol
+        self.value = value
 
     def __repr__(self):
-        return "(ASSIGNMENT: %s = %s)" % (self.left, self.right)
+        return "(ASSIGNMENT: %s = %s)" % (self.symbol, self.value)
 
 class ArgName(Expr):
 
@@ -57,16 +49,13 @@ class ArgName(Expr):
     def __repr__(self):
         return "(ARG_NAME: %s)" % (self.name)
 
-class Varname(Expr):
+class Symbol(Expr):
 
-    def __init__(self, name):
-        self.name = name
-
-    def get_name(self):
-        return self.name
+    def __init__(self, value):
+        self.value = value
 
     def __repr__(self):
-        return "(VAR_NAME: %s)" % (self.name)
+        return "(SYMBOL: %s)" % (self.value)
 
 class Number(Expr):
 
@@ -83,19 +72,6 @@ class String(Expr):
 
     def __repr__(self):
         return "(STR: \"%s\")" % (self.value)
-
-class FunctionPromise(Expr):
-    
-    def __init__(self, scope, fn_def):
-        self.scope = scope
-        self.fn_def = fn_def
-
-    def evaluate(self, scope):
-        scope.update(self.scope)
-        self.fn_def.statements.evaluate(scope)
-
-    def __repr__(self):
-        return "(FN_PROMISE: %s WITH %s)" % (self.fn_def, self.scope)
 
 class FunctionDef(Expr):
 
@@ -114,65 +90,21 @@ class FunctionEval(Expr):
     def __init__(self, fn_var_name, args):
         self.fn_var_name = fn_var_name
         self.args = args
-    
-    def evaluate(self, scope):
-        promise = scope[self.fn_var_name.get_name()]
-        scope = self.bring_args_into_scope(scope, promise.fn_def.params, self.args)
-        return promise.evaluate(scope)
 
-    def bring_args_into_scope(self, scope, params, args):
-        if type(params) is NamedParamSet:
-            for param in params.params:
-                for arg in args.args:
-                    if arg.arg_name.name == param.get_arg_name():
-                        value = arg.value.evaluate(scope)
-                        scope[param.get_var_name()] = value
-        else:
-            i = 0
-            for param in params.params:
-                scope[param.get_name()] = args.args[i].evaluate(scope)
-                i = i + 1
-
-        return scope
+    def get_args(self):
+        return self.args.format_args()
 
     def __repr__(self):
         return "(FN_EVAL: %s <- %s)" % (self.fn_var_name, self.args)
 
-class ParamList(Expr):
+class Params(object):
 
-    def __init__(self):
-        self.params = []
-
-    def append(self, param):
-        self.params.append(param)
+    def __init__(self, primary_type, named_types = {}):
+        self.primary_type = primary_type
+        self.named_types = named_types
 
     def __repr__(self):
-        return "(PARAM_LIST: %s)" % (self.params)
-
-class NamedParam(Expr):
-    def __init__(self, name, typ):
-        self.name = name
-        self.typ = typ
-
-    def get_var_name(self):
-        return "$" + self.name
-
-    def get_arg_name(self):
-        return "#" + self.name
-
-    def __repr__(self):
-        return "(NAMED_PARAM: %s:%s)" % (self.name, self.typ)
-
-class NamedParamSet(Expr):
-
-    def __init__(self):
-        self.params = []
-
-    def add(self, param):
-        self.params.append(param)
-
-    def __repr__(self):
-        return "(NAMED_PARAM_SET: %s)" % (self.params)
+        return "(PARAMS: primary: %s, named: %s)" % (self.primary_type, self.named_types)
 
 class ArgList(Expr):
 
@@ -182,17 +114,20 @@ class ArgList(Expr):
     def append(self, arg):
         self.args.append(arg)
 
-    def as_dict(self):
-        arg_dict = {}
-        for arg in self.args:
-            arg_dict[arg.arg_name.get_name()] = arg.value
+    def prepend(self, arg):
+        self.args.insert(0, arg)
 
-        return arg_dict
+    def format_args(self):
+        primary = self.args[0]
+        return {
+            'primary': primary,
+            'named': {}
+        }
 
     def __repr__(self):
         return "(ARG_LIST: %s)" % (self.args)
 
-class NamedFuncArg(Expr):
+class NamedArg(Expr):
 
     def __init__(self, name, value):
         self.arg_name = name
