@@ -21,14 +21,14 @@ tokens = (
 
 # Tokens
 
-literals = ['=', '(', ')', '{', '}', ',', ':']
+literals = [':', '[', ']']
 
 t_RETURNER = r'->>'
 t_ASSIGNER = r'->'
 t_STRING = r'\"([^\\\n]|(\\.))*?\"'
 
 def t_SYMBOL(t):
-    r'[a-z][a-zA-Z0-9]*'
+    r'[a-z][a-zA-Z0-9\-_]*'
     t.value = e.Symbol(t.value)
     return t
 
@@ -83,6 +83,15 @@ def p_statement_assign(t):
     '''statement : expression ASSIGNER SYMBOL'''
     t[0] = e.Assignment(t[3], t[1])
 
+#FIXME: not actually a valid statement...
+def p_statement_execute_fn(t):
+    '''statement : execute_fn '''
+    t[0] = t[1]
+
+def p_statement_execute_agent(t):
+    '''statement : '[' execute_fn ']' '''
+    t[0] = e.AgentEval(t[2])
+
 def p_expression_number(t):
     'expression : NUMBER'
     t[0] = e.Number(t[1])
@@ -99,8 +108,7 @@ def p_execute_fn_one_arg(t):
     t[0] = e.FunctionEval(t[1], args)
 
 def p_named_arg(t):
-    '''named_arg : SYMBOL ':' expression
-                | SYMBOL ':' SYMBOL'''
+    '''named_arg : SYMBOL ':' expression '''
 
     t[0] = e.NamedArg(t[1], t[3])
 
@@ -115,12 +123,12 @@ def p_execute_fn_many_args(t):
     t[3].prepend(t[2])
     t[0] = e.FunctionEval(t[1], t[3])
 
-def p_statement_execute_fn(t):
-    '''statement : execute_fn '''
-    t[0] = t[1]
-
 def p_expression_execute_fn(t):
     '''expression : execute_fn '''
+    t[0] = t[1]
+
+def p_expression_symbol(t):
+    '''expression : SYMBOL '''
     t[0] = t[1]
 
 def p_error(t):

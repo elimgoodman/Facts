@@ -16,7 +16,8 @@ class TestPly(unittest.TestCase):
     def testTypecheckWorksSimple(self):
         parsed = self.parse('foo 2')
         
-        params = e.Params(Types.INT)
+        param = e.Param('some_var', Types.INT)
+        params = e.Params(param)
 
         scope = {
             'foo': e.FunctionDef(params, e.StatementList())
@@ -28,17 +29,45 @@ class TestPly(unittest.TestCase):
     def testTypecheckFailsParamCheck(self):
         parsed = self.parse('foo 2')
 
-        param_set = e.NamedParamSet()
-        param_obj = e.NamedParam('#some_string', 'String')
-        param_set.add(param_obj)
+        param = e.Param('some_var', Types.STRING)
+        params = e.Params(param)
 
         scope = {
-            '$foo': e.FunctionDef(param_set, e.StatementList()).evaluate({})
+            'foo': e.FunctionDef(params, e.StatementList())
         }
 
         res = self.typecheck(parsed, scope)
         self.assertEqual(True, res.has_errors())
     
+
+    def testTypecheckFailsNamedParamCheck(self):
+        parsed = self.parse('foo 2 and: 3')
+
+        param = e.Param('some_var', Types.INT)
+        param2 = e.Param('and', Types.STRING)
+        params = e.Params(param, [param2])
+
+        scope = {
+            'foo': e.FunctionDef(params, e.StatementList())
+        }
+
+        res = self.typecheck(parsed, scope)
+        self.assertEqual(True, res.has_errors())
+
+    def testTypecheckPassesNamedParamCheck(self):
+        parsed = self.parse('foo 2 and: 3')
+
+        param = e.Param('some_var', Types.INT)
+        param2 = e.Param('and', Types.INT)
+        params = e.Params(param, [param2])
+
+        scope = {
+            'foo': e.FunctionDef(params, e.StatementList())
+        }
+
+        res = self.typecheck(parsed, scope)
+        self.assertEqual(False, res.has_errors())
+
     def testNewStyleFnCallOneParamParses(self):
         parsed = self.parse('foo 2')
         statement = parsed.statements[0]
@@ -62,8 +91,12 @@ class TestPly(unittest.TestCase):
     def testNewStyleFnCallTwoParamAndAssign(self):
         parsed = self.parse('foo 2 and: 3 -> bar')
         statement = parsed.statements[0]
-        print statement
         self.assertEqual(type(statement), e.Assignment)
+
+    def testAgentCall(self):
+        parsed = self.parse('[foo a]')
+        statement = parsed.statements[0]
+        self.assertEqual(type(statement), e.AgentEval)
 
     def testNewStyleReturnerSimpleExpr(self):
         parsed = self.parse('"foo" ->>')
@@ -80,45 +113,65 @@ class TestPly(unittest.TestCase):
         statement = parsed.statements[0]
         self.assertEqual(type(statement), e.FunctionEval)
 
-    def testReturnStmt(self):
-        main = self.parse('$a = $foo()\nprint $a')
-        fn_body = self.parse('return "Hello world"')
+    def testMultipleStmts(self):
+        main = self.parse('foo 2 -> a\nfoo 2')
+        self.assertEqual(2, len(main.statements))
 
-        scope = {
-            '$foo': e.FunctionDef(e.ParamList(), fn_body).evaluate({})
-        }
+    def testVarAsPrimaryArg(self):
+        main = self.parse('foo some_var')
+        self.assertEqual(1, len(main.statements))
+    
+    #def testSimplePrint(self):
+        #main = self.parse('[write "Hello" to: console]')
+        #self.interpet(main, {})
+        #self.assertEqual("Hello\n", std.flush())
+
+    def testReturnStmt(self):
+        main = self.parse('2 ->>')
         
-        self.interpet(main, scope)
-        self.assertEqual("Hello world\n", std.flush())
+        i = self.interpet(main, {})
+        self.assertEqual(2, i)
 
     def testReturnExitsFn(self):
-        main = self.parse('$a = $foo()\nprint $a')
-        fn_body = self.parse('return "Hello world"\nprint "Foo"')
-
-        scope = {
-            '$foo': e.FunctionDef(e.ParamList(), fn_body).evaluate({})
-        }
+        main = self.parse('2 ->>\n3 ->>')
         
-        self.interpet(main, scope)
-        self.assertEqual("Hello world\n", std.flush())
-
-    def testInterpretPrintNumber(self):
-        main = self.parse('print 2')
-
-        self.interpet(main, {})
-        self.assertEqual("2\n", std.flush())
-
-    def testInterpretPrintString(self):
-        main = self.parse('print "Hello"')
-
-        self.interpet(main, {})
-        self.assertEqual("Hello\n", std.flush())
+        i = self.interpet(main, {})
+        self.assertEqual(2, i)
 
     def testInterpretAssignment(self):
-        main = self.parse('$a = "Hello"\nprint $a')
+        main = self.parse('2 -> a\na ->>')
 
-        self.interpet(main, {})
-        self.assertEqual("Hello\n", std.flush())
+        i = self.interpet(main, {})
+        self.assertEqual(2, i)
+
+    def testReturnFromFn(self):
+        main = self.parse('foo 2 ->>')
+        fn_body = self.parse('some_var ->>')
+
+        param = e.Param('some_var', Types.INT)
+        params = e.Params(param)
+
+        scope = {
+            'foo': e.FunctionDef(params, fn_body)
+        }
+
+        i = self.interpet(main, scope)
+        self.assertEqual(2, i)
+
+    def testAdditionalParamsPulledIntoScope(self):
+        main = self.parse('foo 2 and: 3 ->>')
+        fn_body = self.parse('and ->>')
+
+        param = e.Param('some_var', Types.INT)
+        param2 = e.Param('and', Types.STRING)
+        params = e.Params(param, [param2])
+
+        scope = {
+            'foo': e.FunctionDef(params, fn_body)
+        }
+
+        i = self.interpet(main, scope)
+        self.assertEqual(3, i)
 
     def parse(self, data):
         plyer.lexer.input(data)
@@ -129,8 +182,11 @@ class TestPly(unittest.TestCase):
         return c.check(parsed, scope)
     
     def interpet(self, parsed, scope):
+        t = self.typecheck(parsed, scope)
+        if t.has_errors():
+            raise Exception("Failed typechecking!")
         i = Interpreter()
-        i.interpet(parsed, scope)
+        return i.interpet(parsed, scope)
 
 if __name__ == '__main__':
     unittest.main()

@@ -73,15 +73,29 @@ class String(Expr):
     def __repr__(self):
         return "(STR: \"%s\")" % (self.value)
 
+class NativeFunctionDef(Expr):
+
+    def __init__(self, params, native_fn):
+        self.params = params
+        self.native_fn = native_fn
+    
+    def __repr__(self):
+        return "(NATIVE_FN_DEF: %s -> lambda)" % (self.params)
+
+class AgentEval(Expr):
+
+    def __init__(self, fn_eval):
+        self.fn_eval = fn_eval
+
+    def __repr__(self):
+        return "(AGENT_EVAL: %s)" % (self.fn_eval)
+
 class FunctionDef(Expr):
 
     def __init__(self, params, statements):
         self.params = params
         self.statements = statements
     
-    def evaluate(self, scope):
-        return FunctionPromise(scope, self)
-
     def __repr__(self):
         return "(FN_DEF: %s -> %s)" % (self.params, self.statements)
 
@@ -97,14 +111,23 @@ class FunctionEval(Expr):
     def __repr__(self):
         return "(FN_EVAL: %s <- %s)" % (self.fn_var_name, self.args)
 
-class Params(object):
+class Param(object):
 
-    def __init__(self, primary_type, named_types = {}):
-        self.primary_type = primary_type
-        self.named_types = named_types
+    def __init__(self, name, typ):
+        self.name = name
+        self.typ = typ
 
     def __repr__(self):
-        return "(PARAMS: primary: %s, named: %s)" % (self.primary_type, self.named_types)
+        return "(PARAM: %s:%s)" % (self.name, self.typ)
+
+class Params(object):
+
+    def __init__(self, primary, additional = []):
+        self.primary = primary
+        self.additional = additional
+
+    def __repr__(self):
+        return "(PARAMS: primary: %s, additional: %s)" % (self.primary, self.additional)
 
 class ArgList(Expr):
 
@@ -119,9 +142,14 @@ class ArgList(Expr):
 
     def format_args(self):
         primary = self.args[0]
+
+        additional = {}
+        for additional_arg in self.args[1:]:
+            additional[additional_arg.arg_name.value] = additional_arg.value
+
         return {
             'primary': primary,
-            'named': {}
+            'additional': additional
         }
 
     def __repr__(self):

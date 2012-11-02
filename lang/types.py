@@ -1,7 +1,7 @@
 import lang.exprs as e
 
 class TypecheckerResult(object):
-    
+
     def __init__(self):
         self.errors = []
 
@@ -13,7 +13,7 @@ class TypecheckerResult(object):
 
 class Types(object):
     (INT, STRING) = ('Int', 'String')
-    
+
     TYPES_TO_EXPRS = {
         INT: e.Number,
         STRING: e.String
@@ -31,11 +31,19 @@ class Typechecker(object):
                 fn_def = scope[stmt.fn_var_name.value]
                 params = fn_def.params
                 args = stmt.get_args()
-                print args
-                #for param in params.params:
-                    #value = arg_dict[param.name]
-                    #expected_expr = Types.TYPES_TO_EXPRS[param.typ]
-                    #if type(value) != expected_expr:
-                        #res.add_error()
+
+                passed = self.check_type_of_expr(args['primary'], params.primary.typ)
+                if not passed:
+                    res.add_error()
+
+                for param in params.additional:
+                    arg = args['named'][param.name]
+                    passed = self.check_type_of_expr(arg, param.typ)
+                    if not passed:
+                        res.add_error()
 
         return res
+
+    def check_type_of_expr(self, expr, typ):
+        expected_expr = Types.TYPES_TO_EXPRS[typ]
+        return type(expr) is expected_expr
