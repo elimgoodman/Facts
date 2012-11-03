@@ -41,8 +41,7 @@ class Interpreter(object):
             if fn_type is e.FunctionDef:
                 return self.interpet(fn_def.statements, scope)
             elif fn_type is e.NativeFunctionDef:
-                #FIXME: how's this gonna work?
-                pass
+                return fn_def.native_fn(**scope)
         else:
             raise Exception("Unknown expr: %s" % expr)
 

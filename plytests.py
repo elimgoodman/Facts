@@ -20,7 +20,7 @@ class TestPly(unittest.TestCase):
         params = e.Params(param)
 
         scope = {
-            'foo': e.FunctionDef(params, e.StatementList())
+            'foo': e.FunctionDef(params, e.StatementList(), Types.NONE)
         }
 
         res = self.typecheck(parsed, scope)
@@ -33,7 +33,7 @@ class TestPly(unittest.TestCase):
         params = e.Params(param)
 
         scope = {
-            'foo': e.FunctionDef(params, e.StatementList())
+            'foo': e.FunctionDef(params, e.StatementList(), Types.NONE)
         }
 
         res = self.typecheck(parsed, scope)
@@ -48,7 +48,7 @@ class TestPly(unittest.TestCase):
         params = e.Params(param, [param2])
 
         scope = {
-            'foo': e.FunctionDef(params, e.StatementList())
+            'foo': e.FunctionDef(params, e.StatementList(), Types.NONE)
         }
 
         res = self.typecheck(parsed, scope)
@@ -62,7 +62,7 @@ class TestPly(unittest.TestCase):
         params = e.Params(param, [param2])
 
         scope = {
-            'foo': e.FunctionDef(params, e.StatementList())
+            'foo': e.FunctionDef(params, e.StatementList(), Types.NONE)
         }
 
         res = self.typecheck(parsed, scope)
@@ -152,7 +152,7 @@ class TestPly(unittest.TestCase):
         params = e.Params(param)
 
         scope = {
-            'foo': e.FunctionDef(params, fn_body)
+            'foo': e.FunctionDef(params, fn_body, Types.NONE)
         }
 
         i = self.interpet(main, scope)
@@ -167,11 +167,45 @@ class TestPly(unittest.TestCase):
         params = e.Params(param, [param2])
 
         scope = {
-            'foo': e.FunctionDef(params, fn_body)
+            'foo': e.FunctionDef(params, fn_body, Types.NONE)
         }
 
         i = self.interpet(main, scope)
         self.assertEqual(3, i)
+
+    def testNativeFn(self):
+        main = self.parse('add 2 to: 3 ->>')
+
+        i = self.interpet(main, {})
+        self.assertEqual(5, i)
+
+    #def testReturnTypecheckWorks(self):
+        #main = self.parse('foo 2 ->>')
+        #fn_body = self.parse('x ->>')
+
+        #param = e.Param('x', Types.INT)
+        #params = e.Params(param, [])
+
+        #scope = {
+            #'foo': e.FunctionDef(params, fn_body, Types.INT)
+        #}
+
+        #res = self.typecheck(main, scope)
+        #self.assertEqual(False, res.has_errors())
+
+    #def testReturnTypecheckFails(self):
+        #main = self.parse('foo 2 ->>')
+        #fn_body = self.parse('x ->>')
+
+        #param = e.Param('x', Types.INT)
+        #params = e.Params(param, [])
+
+        #scope = {
+            #'foo': e.FunctionDef(params, fn_body, Types.STRING)
+        #}
+
+        #res = self.typecheck(main, scope)
+        #self.assertEqual(True, res.has_errors())
 
     def parse(self, data):
         plyer.lexer.input(data)

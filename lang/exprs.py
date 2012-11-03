@@ -75,9 +75,10 @@ class String(Expr):
 
 class NativeFunctionDef(Expr):
 
-    def __init__(self, params, native_fn):
+    def __init__(self, params, native_fn, return_type):
         self.params = params
         self.native_fn = native_fn
+        self.return_type = return_type
     
     def __repr__(self):
         return "(NATIVE_FN_DEF: %s -> lambda)" % (self.params)
@@ -92,9 +93,10 @@ class AgentEval(Expr):
 
 class FunctionDef(Expr):
 
-    def __init__(self, params, statements):
+    def __init__(self, params, statements, return_type):
         self.params = params
         self.statements = statements
+        self.return_type = return_type
     
     def __repr__(self):
         return "(FN_DEF: %s -> %s)" % (self.params, self.statements)

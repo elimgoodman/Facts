@@ -12,7 +12,7 @@ class TypecheckerResult(object):
         return len(self.errors) > 0
 
 class Types(object):
-    (INT, STRING) = ('Int', 'String')
+    (INT, STRING, NONE) = ('Int', 'String', 'None')
 
     TYPES_TO_EXPRS = {
         INT: e.Number,
@@ -37,7 +37,7 @@ class Typechecker(object):
                     res.add_error()
 
                 for param in params.additional:
-                    arg = args['named'][param.name]
+                    arg = args['additional'][param.name]
                     passed = self.check_type_of_expr(arg, param.typ)
                     if not passed:
                         res.add_error()

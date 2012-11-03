@@ -1,3 +1,4 @@
+from lang.types import Types
 import lang.exprs as e
 import sys
 
@@ -6,14 +7,15 @@ class Builtins(object):
     def get_builtins(self):
 
         return {
-            'write': self.make_write(),
-            'console': sys.stdout
+            'add': self.make_add()
         }
 
-    def make_write(self):
+    def make_add(self):
         #TODO: generalize
-        p = e.Params('String', {'to': 'Console'})
-        def write_inner(thing, to=None):
-            to.write(str(thing))
+        p1 = e.Param('a', 'Int')
+        p2 = e.Param('to', 'Int')
+        p = e.Params(p1, [p2])
+        def add_inner(a=None, to=None, **kwargs):
+            return a + to
 
-        return e.NativeFunctionDef(p, write_inner)
+        return e.NativeFunctionDef(p, add_inner, Types.INT)
