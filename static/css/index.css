@@ -115,7 +115,7 @@ body {
 }
 
 #output {
-    /*display: none;*/
+    display: none;
     background: black;
     border: none;
     color: white;

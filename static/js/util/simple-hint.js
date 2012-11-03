@@ -19,7 +19,7 @@
       }
 
       var result = getHints(editor);
-      if (!result || !result.list.length) return;
+      if (!result || !result.list.length) return true;
       var completions = result.list;
       function insert(str) {
         editor.replaceRange(str, result.from, result.to);

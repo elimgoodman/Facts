@@ -145,9 +145,34 @@ $(function(){
             this.$el.val("");
             Facts.SelectedFact.bind('change', this.renderAndFocus, this);
             CodeMirror.keyMap.basic['Esc'] = function(cm) {
-                //FIXME: make escape blur
+                $("*").blur();
             };
-            this.code_mirror = CodeMirror.fromTextArea(this.el, {});
+
+            extraKeys = {};
+            //_.each(_.range(65, 91), function(i) {
+                //var char = String.fromCharCode(i);
+                //extraKeys[char] = function(cm) {
+                    //CodeMirror.simpleHint(cm, function(cm) {
+                        //return CodeMirror.balletHint(cm, char);
+                    //});
+                //}
+            //});
+
+            console.log(extraKeys);
+
+            this.code_mirror = CodeMirror.fromTextArea(this.el, {
+                onKeyEvent: function(cm, event) {
+                    var $ev = $.Event(event);
+                    if($ev.type != 'keydown') {
+                        return;
+                    }
+
+                    var char = String.fromCharCode($ev.originalEvent.which);
+                    return CodeMirror.simpleHint(cm, function(cm) {
+                        return CodeMirror.balletHint(cm, char);
+                    });
+                }
+            });
 
         },
         renderAndFocus: function() {
@@ -278,11 +303,9 @@ $(function(){
         },
         writeCurrentBuffer: function(args) {
             var fact = this.setCurrentFactFields();
-            console.log(fact.toJSON());
             if(fact) {
                 fact.save();
             }
-            console.log(fact.toJSON());
         },
         createNewFn: function(args) {
             var fn_name = args[0];
