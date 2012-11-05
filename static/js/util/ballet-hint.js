@@ -1,55 +1,41 @@
 (function () {
-  function forEach(arr, f) {
-    for (var i = 0, e = arr.length; i < e; ++i) f(arr[i]);
-  }
-  
-  function arrayContains(arr, item) {
-    if (!Array.prototype.indexOf) {
-      var i = arr.length;
-      while (i--) {
-        if (arr[i] === item) {
-          return true;
+    
+    
+    CodeMirror.balletHint = function(editor) {
+        var $el = $("#selector").clone();
+        var el = $el.get(0);
+
+        var cursor_pos = editor.getCursor();
+        $(".CodeMirror-cursor").addClass("selector-mode");
+        editor.addWidget(cursor_pos, el)
+        this.reposition(el);
+        $el.show();
+
+        $("*").blur();
+        this.selector_text = $el.find(".selector-text");
+        this.selector_text.focus();
+        this.selector_text.keyup(function() {
+            var txt = $(this).val();
+
+            if(txt && txt.length > 1) {
+                $.getJSON("/find_action", {txt: txt}, function(data) {
+                    console.log(data);
+                });
+            }
+        });
+    };
+
+    CodeMirror.balletHint.prototype = {
+        reposition: function(node) {
+            var current_top = $(node).css('top');
+            var top_num = parseInt(current_top.split('p')[0]);
+            top_num += 20;
+            $(node).css('top', top_num + "px");
+
+            var current_left = $(node).css('left');
+            var left_num  = parseInt(current_left.split('p')[0]);
+            left_num -= 10;
+            $(node).css('left', left_num + "px");
         }
-      }
-      return false;
-    }
-    return arr.indexOf(item) != -1;
-  }
-
-  function scriptHint(editor, keywords, getToken) {
-    // Find the token at the cursor
-    var cur = editor.getCursor(), token = getToken(editor, cur), tprop = token;
-    // If it's not a 'word-style' token, ignore the token.
-		if (!/^[\w$_]*$/.test(token.string)) {
-      token = tprop = {start: cur.ch, end: cur.ch, string: "", state: token.state,
-                       className: token.string == "." ? "property" : null};
-    }
-
-    return {list: getCompletions(token),
-            from: {line: cur.line, ch: token.start},
-            to: {line: cur.line, ch: token.end}};
-  }
-
-  CodeMirror.balletHint = function(editor, char) {
-      console.log(char);
-      if(char == 'A') {
-          return scriptHint(editor, javascriptKeywords,
-                            function (e, cur) {return e.getTokenAt(cur);});
-        } else {
-            return false;
-        }
-  };
-
-
-  var stringProps = ("charAt charCodeAt indexOf lastIndexOf substring substr slice trim trimLeft trimRight " +
-                     "toUpperCase toLowerCase split concat match replace search").split(" ");
-  var arrayProps = ("length concat join splice push pop shift unshift slice reverse sort indexOf " +
-                    "lastIndexOf every some filter forEach map reduce reduceRight ").split(" ");
-  var funcProps = "prototype apply call bind".split(" ");
-  var javascriptKeywords = ("break case catch continue debugger default delete do else false finally for function " +
-                  "if in instanceof new null return switch throw true try typeof var void while with").split(" ");
-
-  function getCompletions(token) {
-      return ['addThree', 'addFour'];
-  }
+    };
 })();

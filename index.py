@@ -72,6 +72,14 @@ def create_or_update_fact():
     return jsonify(resp=f)
 
 
+@app.route("/find_action")
+def find_action():
+    actions = facts.Fact.objects(fact_type='fn')
+
+    #FIXME: should do this in DB land but I'm lazy
+    #filter(actions, lambda f: return f)
+    return jsonify(resp=actions)
+
 @app.route("/execute", methods=['POST'])
 def execute():
     connect()

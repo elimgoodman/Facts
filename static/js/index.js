@@ -149,28 +149,24 @@ $(function(){
             };
 
             extraKeys = {};
-            //_.each(_.range(65, 91), function(i) {
-                //var char = String.fromCharCode(i);
-                //extraKeys[char] = function(cm) {
-                    //CodeMirror.simpleHint(cm, function(cm) {
+
+            this.code_mirror = CodeMirror.fromTextArea(this.el, {
+                //onKeyEvent: function(cm, event) {
+                    //var $ev = $.Event(event);
+                    //if($ev.type != 'keydown') {
+                        //return;
+                    //}
+
+                    //var char = String.fromCharCode($ev.originalEvent.which);
+                    //return CodeMirror.simpleHint(cm, function(cm) {
                         //return CodeMirror.balletHint(cm, char);
                     //});
                 //}
-            //});
-
-            console.log(extraKeys);
-
-            this.code_mirror = CodeMirror.fromTextArea(this.el, {
-                onKeyEvent: function(cm, event) {
-                    var $ev = $.Event(event);
-                    if($ev.type != 'keydown') {
-                        return;
+                extraKeys: {
+                    'Shift-4': function(cm) {
+                        new CodeMirror.balletHint(cm);
+                        return false;
                     }
-
-                    var char = String.fromCharCode($ev.originalEvent.which);
-                    return CodeMirror.simpleHint(cm, function(cm) {
-                        return CodeMirror.balletHint(cm, char);
-                    });
                 }
             });
 
