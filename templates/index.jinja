@@ -11,7 +11,6 @@
         <script src="{{ url_for('static', filename='js/backbone.js') }}" type="text/javascript"></script>
         <script src="{{ url_for('static', filename='js/codemirror.js') }}" type="text/javascript"></script>
         <script src="{{ url_for('static', filename='js/util/simple-hint.js') }}" type="text/javascript"></script>
-        <script src="{{ url_for('static', filename='js/util/ballet-hint.js') }}" type="text/javascript"></script>
         <script src="{{ url_for('static', filename='js/mode/smalltalk.js') }}" type="text/javascript"></script>
         <script src="{{ url_for('static', filename='js/autogrow.js') }}" type="text/javascript"></script>
         <script src="{{ url_for('static', filename='js/index.js') }}" type="text/javascript"></script>
@@ -48,6 +47,10 @@
         <%= name %>
     </script>
 
+    <script type="text/html" id="fact-selector-list-tmpl">
+        <%= name %>
+    </script>
+
     <script type="text/html" id="fn-fact-info-tmpl">
         <span class="fact-type fn">fn</span>
         <%= name %>
@@ -67,7 +70,9 @@
     </script>
 
     <div id="selector">
-        <input class="selector-text" />
+        <input class="selector-text escapable" />
+        <ul class="selector-possibilities">
+        </ul>
     </div>
 </html>
 

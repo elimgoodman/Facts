@@ -1,6 +1,5 @@
 (function () {
     
-    
     CodeMirror.balletHint = function(editor) {
         var $el = $("#selector").clone();
         var el = $el.get(0);
@@ -12,14 +11,14 @@
         $el.show();
 
         $("*").blur();
-        this.selector_text = $el.find(".selector-text");
         this.selector_text.focus();
         this.selector_text.keyup(function() {
             var txt = $(this).val();
 
             if(txt && txt.length > 1) {
                 $.getJSON("/find_action", {txt: txt}, function(data) {
-                    console.log(data);
+                    var actions = new Facts.FactCollection(data.resp);
+                    console.log(actions);
                 });
             }
         });

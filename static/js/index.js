@@ -1,6 +1,6 @@
 $(function(){
 
-    var Facts = {};
+    var Facts = window.Facts || {};
 
     Facts.MView = Backbone.View.extend({
         render: function() {
@@ -91,6 +91,12 @@ $(function(){
         }
     });
 
+    Facts.FactSelectorListView = Facts.MView.extend({
+        tagName: 'li',
+        className: 'selector-fact',
+        template: _.template($('#fact-selector-list-tmpl').html())
+    });
+
     Facts.FactInfoView = Facts.MView.extend({
         tagName: 'div',
         className: 'actual-fact-info',
@@ -151,20 +157,9 @@ $(function(){
             extraKeys = {};
 
             this.code_mirror = CodeMirror.fromTextArea(this.el, {
-                //onKeyEvent: function(cm, event) {
-                    //var $ev = $.Event(event);
-                    //if($ev.type != 'keydown') {
-                        //return;
-                    //}
-
-                    //var char = String.fromCharCode($ev.originalEvent.which);
-                    //return CodeMirror.simpleHint(cm, function(cm) {
-                        //return CodeMirror.balletHint(cm, char);
-                    //});
-                //}
                 extraKeys: {
                     'Shift-4': function(cm) {
-                        new CodeMirror.balletHint(cm);
+                        Facts.TheSelector.showInEditor(cm);
                         return false;
                     }
                 }
@@ -264,6 +259,61 @@ $(function(){
         }
     });
 
+    Facts.Selector = Backbone.View.extend({
+        el: $("#selector"),
+        events: {
+            'keyup .selector-text': 'findActions'
+        },
+        initialize: function() {
+            this.node = this.$el.get(0);
+            this.selector_text = this.$(".selector-text");
+            this.possibilties = this.$(".selector-possibilities");
+            this.editor = null;
+        },
+        showInEditor: function(editor) {
+            this.editor = editor;
+
+            var cursor_pos = editor.getCursor();
+            $(".CodeMirror-cursor").addClass("selector-mode");
+            editor.addWidget(cursor_pos, this.node);
+
+            $("*").blur();
+            this.reposition(this.node);
+            this.$el.show();
+            this.selector_text.focus();
+        },
+        reposition: function(node) {
+            var current_top = $(node).css('top');
+            var top_num = parseInt(current_top.split('p')[0]);
+            top_num += 20;
+            $(node).css('top', top_num + "px");
+
+            var current_left = $(node).css('left');
+            var left_num  = parseInt(current_left.split('p')[0]);
+            left_num -= 10;
+            $(node).css('left', left_num + "px");
+        },
+        findActions: function(e) {
+            //FIXME: this should probably be done using the Collection.fetch
+
+            var self = this;
+            var txt = $(e.target).val();
+
+            if(txt && txt.length > 1) {
+                $.getJSON("/find_action", {txt: txt}, function(data) {
+                    var actions = new Facts.FactCollection(data.resp);
+                    self.possibilties.empty();
+
+                    actions.each(function(action){
+                        var v = new Facts.FactSelectorListView({model: action});
+                        console.log(self.possibilties);
+                        self.possibilties.append(v.render().el);
+                    });
+                });
+            }
+        }
+    });
+
     Facts.CommandPerformer = _.extend({
         phrases: {
             'w': 'writeCurrentBuffer',
@@ -343,6 +393,7 @@ $(function(){
     Facts.TheFactDrawer = new Facts.FactDrawer();
     Facts.TheCommandBar = new Facts.CommandBar();
     Facts.TheOutput = new Facts.Output();
+    Facts.TheSelector = new Facts.Selector();
 
     Facts.AllFacts.bind('reset', function() {
         Facts.SelectedFact.set(Facts.AllFacts.at(0));
@@ -362,4 +413,6 @@ $(function(){
     });
 
     $("body").focus();
+
+    window.Facts = Facts;
 });
