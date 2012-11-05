@@ -45,6 +45,9 @@ $(function(){
         deselect: function() {
             this.set({selected: false});
         },
+        isSelected: function() {
+            return this.get('selected');
+        },
         url: "/fact"
     });
     Facts.FactCollection = Backbone.Collection.extend({
@@ -94,7 +97,20 @@ $(function(){
     Facts.FactSelectorListView = Facts.MView.extend({
         tagName: 'li',
         className: 'selector-fact',
-        template: _.template($('#fact-selector-list-tmpl').html())
+        template: _.template($('#fact-selector-list-tmpl').html()),
+        postRender: function() {
+            if(this.model.isSelected()) {
+                this.$el.addClass('selected');
+            } else {
+                this.$el.removeClass('selected');
+            }
+        }
+    });
+
+    Facts.FactSelectorInfoView = Facts.MView.extend({
+        tagName: 'div',
+        className: 'selector-fact-info',
+        template: _.template($('#fact-selector-info-tmpl').html())
     });
 
     Facts.FactInfoView = Facts.MView.extend({
@@ -262,13 +278,22 @@ $(function(){
     Facts.Selector = Backbone.View.extend({
         el: $("#selector"),
         events: {
-            'keyup .selector-text': 'findActions'
+            'keyup .selector-text': 'findActions',
+            'keydown': 'beginNavigating'
         },
         initialize: function() {
             this.node = this.$el.get(0);
             this.selector_text = this.$(".selector-text");
-            this.possibilties = this.$(".selector-possibilities");
+            this.possibilty_list = this.$(".selector-possibilities");
+            this.fact_info = this.$(".selector-fact-info-container");
+
             this.editor = null;
+
+            this.possibilties = new Facts.FactCollection();
+            this.possibilties.on('reset', this.renderPossibilities, this);
+
+            this.selection = null;
+            this.on('selection-changed', this.renderFactInfo, this);
         },
         showInEditor: function(editor) {
             this.editor = editor;
@@ -295,22 +320,67 @@ $(function(){
         },
         findActions: function(e) {
             //FIXME: this should probably be done using the Collection.fetch
+            //FIXME: only do this for \w keys
 
             var self = this;
             var txt = $(e.target).val();
 
             if(txt && txt.length > 1) {
                 $.getJSON("/find_action", {txt: txt}, function(data) {
-                    var actions = new Facts.FactCollection(data.resp);
-                    self.possibilties.empty();
-
-                    actions.each(function(action){
-                        var v = new Facts.FactSelectorListView({model: action});
-                        console.log(self.possibilties);
-                        self.possibilties.append(v.render().el);
-                    });
+                    self.possibilties.reset(data.resp);
                 });
             }
+        },
+        renderPossibilities: function() {
+            var self = this;
+
+            this.possibilty_list.empty();
+            this.possibilties.each(function(action){
+                var v = new Facts.FactSelectorListView({model: action});
+                self.possibilty_list.append(v.render().el);
+            });
+        },
+        beginNavigating: function(e) {
+            if(e.which == 40) { //down arrow
+                e.preventDefault();
+                e.stopPropagation();
+
+                this.selector_text.blur();
+                this.setSelection(this.possibilties.at(0));
+            }
+        },
+        setSelection: function(f) {
+            if(this.selection) {
+                this.selection.deselect();
+            }
+
+            this.selection = f;
+            this.selection.select();
+            this.trigger('selection-changed');
+        },
+        getSelection: function() {
+            return this.selection;
+        },
+        down: function() {
+            var i = this.possibilties.indexOf(this.getSelection());
+            var new_index = i + 1;
+            if(new_index <= this.possibilties.length - 1) {
+                this.setSelection(this.possibilties.at(new_index));
+            }
+        },
+        up: function() {
+            var i = this.possibilties.indexOf(this.getSelection());
+            if(i > 0) {
+                this.setSelection(this.possibilties.at(i - 1));
+            } else {
+                this.selection.deselect();
+                this.selector_text.focus();
+            }
+        },
+        renderFactInfo: function() {
+            var m = this.getSelection();
+            var v = new Facts.FactSelectorInfoView({model: m});
+            this.fact_info.html(v.render().el);
         }
     });
 
@@ -405,6 +475,14 @@ $(function(){
         Facts.TheCommandBar.show();
     });
     
+    Mousetrap.bind("up", function(){
+        Facts.TheSelector.up();
+    });
+
+    Mousetrap.bind("down", function(){
+        Facts.TheSelector.down();
+    });
+
     $(".escapable").live('keydown', function(e){
         if(e.keyCode == 27) {
             e.preventDefault();

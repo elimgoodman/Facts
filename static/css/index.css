@@ -229,8 +229,34 @@ body {
 
 .selector-text {
     padding: 6px;
-    border: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: 1px solid #ccc;
     font-family: monospace;
     font-size: 16px;
     width: 100%;
+}
+
+.selector-possibilities {
+    float: left;
+    border-right: 1px solid #ccc;
+    padding-right: 9px;
+    padding-top: 6px;
+}
+
+.selector-fact {
+    padding: 6px;
+    margin-bottom: 3px;
+    cursor: pointer;
+}
+
+.selector-fact.selected {
+    background: #eee;
+    border-radius: 5px;
+}
+
+.selector-fact-info-container {
+    padding: 12px;
+    float: left;
 }
