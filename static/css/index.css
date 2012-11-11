@@ -18,13 +18,6 @@ body {
     resize: none;
 }
 
-#code-container {
-    height: 100%;
-    width: 700px;
-    border-right: 1px solid #ccc;
-    float: left;
-}
-
 #code {
     height: 100%;
     width: 100%;
@@ -40,10 +33,10 @@ body {
 
 #fact-drawer {
     background: white;
-    width: 200px;
-    height: 100%;
+    /*width: 200px;*/
+    /*height: 100%;*/
     z-index: 2;
-    float: left;
+    /*float: left;*/
     border-right: 1px solid #ccc;
 }
 
@@ -165,15 +158,13 @@ body {
     border-color: rgba(238, 238, 238, 0);
     border-top-color: #eee;
     border-width: 10px;
-    left: 50%;
-    margin-left: -325px;
+    left: 18px;
 }
 .arrow_box:before {
     border-color: rgba(204, 204, 204, 0);
     border-top-color: #ccc;
     border-width: 11px;
-    left: 50%;
-    margin-left: -326px;
+    left: 17px;
 }
 
 .fact-info-label {
