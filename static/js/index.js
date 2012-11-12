@@ -48,6 +48,14 @@ $(function(){
         isSelected: function() {
             return this.get('selected');
         },
+        makeSignature: function() {
+            if(this.get("fact_type") != "fn") {
+                throw "wrong type";
+            }
+
+            var metadata = this.get('metadata');
+            return "foo";
+        },
         url: "/fact"
     });
     Facts.FactCollection = Backbone.Collection.extend({
@@ -279,6 +287,7 @@ $(function(){
         el: $("#selector"),
         events: {
             'keyup .selector-text': 'findActions',
+            'keydown .selector-text': 'maybeHide',
             'keydown': 'beginNavigating'
         },
         initialize: function() {
@@ -288,6 +297,7 @@ $(function(){
             this.fact_info = this.$(".selector-fact-info-container");
 
             this.editor = null;
+            this.cursor_pos = null;
 
             this.possibilties = new Facts.FactCollection();
             this.possibilties.on('reset', this.renderPossibilities, this);
@@ -297,15 +307,25 @@ $(function(){
         },
         showInEditor: function(editor) {
             this.editor = editor;
+            this.cursor_pos = editor.getCursor();
 
-            var cursor_pos = editor.getCursor();
             $(".CodeMirror-cursor").addClass("selector-mode");
-            editor.addWidget(cursor_pos, this.node);
+            editor.addWidget(this.cursor_pos, this.node);
 
             $("*").blur();
             this.reposition(this.node);
             this.$el.show();
             this.selector_text.focus();
+        },
+        hide: function() {
+            this.$el.hide();
+            this.editor.focus();
+            this.reset();
+        },
+        reset: function() {
+            this.selector_text.val("");
+            this.possibilty_list.empty();
+            this.fact_info.empty();
         },
         reposition: function(node) {
             var current_top = $(node).css('top');
@@ -339,6 +359,12 @@ $(function(){
                 var v = new Facts.FactSelectorListView({model: action});
                 self.possibilty_list.append(v.render().el);
             });
+        },
+        maybeHide: function(e) {
+            if(e.keyCode == 27) {
+                e.preventDefault();
+                this.hide();
+            }
         },
         beginNavigating: function(e) {
             if(e.which == 40) { //down arrow
@@ -381,6 +407,11 @@ $(function(){
             var m = this.getSelection();
             var v = new Facts.FactSelectorInfoView({model: m});
             this.fact_info.html(v.render().el);
+        },
+        insertSelection: function() {
+            var selection = this.getSelection();
+            this.hide();
+            this.editor.replaceRange(selection.makeSignature(), this.cursor_pos);
         }
     });
 
@@ -481,6 +512,15 @@ $(function(){
 
     Mousetrap.bind("down", function(){
         Facts.TheSelector.down();
+    });
+
+    Mousetrap.bind("enter", function(e){
+        Facts.TheSelector.insertSelection();
+        e.preventDefault();
+    });
+
+    Mousetrap.bind("esc", function(e){
+        Facts.TheSelector.hide();
     });
 
     $(".escapable").live('keydown', function(e){

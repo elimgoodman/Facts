@@ -18,4 +18,7 @@ class Fact(mongo.Document):
                 params[name.strip()] = typ.strip()
 
         return params
-
+    
+    def get_signature(self):
+        print "HERE"
+        return 11

@@ -78,6 +78,7 @@ def find_action():
 
     #FIXME: should do this in DB land but I'm lazy
     #filter(actions, lambda f: return f)
+
     return jsonify(resp=actions)
 
 @app.route("/execute", methods=['POST'])
