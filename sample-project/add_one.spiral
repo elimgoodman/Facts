@@ -1,0 +1,3 @@
+-- {"fact_type": "fn", "name": "addOne", "returns": "Int", "takes": "to:Int"}
+add 1 to: to ->>
+

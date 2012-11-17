@@ -54,7 +54,7 @@ $(function(){
             }
 
             var metadata = this.get('metadata');
-            return "foo";
+
         },
         url: "/fact"
     });

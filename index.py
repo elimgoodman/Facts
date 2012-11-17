@@ -1,57 +1,28 @@
 from flask import Flask, render_template, request
 import lang.plyer as plyer
 import lang.exprs as exprs
-import mongoengine as mongo
-import facts
+from librarian import Librarian, FactEncoder
 import simplejson as json
 import datetime
-from bson.objectid import ObjectId
 from werkzeug import Response
 from lang.output import StdOut as std
-
-class MongoJsonEncoder(json.JSONEncoder):
-    def default(self, obj):
-        type(obj)
-        if isinstance(obj, (datetime.datetime, datetime.date)):
-            return obj.isoformat()
-        elif isinstance(obj, ObjectId):
-            return unicode(obj)
-        elif isinstance(obj, mongo.Document):
-            return obj._data
-        elif isinstance(obj, mongo.queryset.QuerySet):
-            return list(obj)
-        return json.JSONEncoder.default(self, obj)
 
 def jsonify(*args, **kwargs):
     """ jsonify with support for MongoDB ObjectId
     """
-    return Response(json.dumps(dict(*args, **kwargs), cls=MongoJsonEncoder), mimetype='application/json')
+    return Response(json.dumps(dict(*args, **kwargs), cls=FactEncoder), mimetype='application/json')
 
 app = Flask(__name__)
 
-def connect():
-    return mongo.connect('facts')
-
 @app.route('/')
 def index():
-    connect()
-
     return render_template('index.jinja')
 
 @app.route('/facts')
 def get_all_facts():
-    connect()
+    librarian = Librarian.Instance()
 
-    #FIXME: this probably sux
-    #we always need a main block...
-    (main_block, created) = facts.Fact.objects.get_or_create(fact_type="main_block")
-    if created:
-        main_block.name = "main"
-        main_block.body = ""
-        main_block.save()
-        return jsonify(resp=[main_block])
-    else:
-        return jsonify(resp=facts.Fact.objects)
+    return jsonify(resp=librarian.get_all())
 
 @app.route('/fact', methods=["POST", "PUT"])
 def create_or_update_fact():
@@ -74,12 +45,9 @@ def create_or_update_fact():
 
 @app.route("/find_action")
 def find_action():
-    actions = facts.Fact.objects(fact_type='fn')
+    librarian = Librarian.Instance()
 
-    #FIXME: should do this in DB land but I'm lazy
-    #filter(actions, lambda f: return f)
-
-    return jsonify(resp=actions)
+    return jsonify(resp=librarian.get_by_type('fn'))
 
 @app.route("/execute", methods=['POST'])
 def execute():
