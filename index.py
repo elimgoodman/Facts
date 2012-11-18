@@ -26,19 +26,18 @@ def get_all_facts():
 
 @app.route('/fact', methods=["POST", "PUT"])
 def create_or_update_fact():
-    connect()
+    librarian = Librarian.Instance()
+
+    name = request.json['name']
+    body = request.json['body']
+    fact_type = request.json['fact_type']
+    metadata = request.json['metadata']
 
     if request.json.has_key('fact_id'):
         fact_id = request.json['fact_id']
-        (f, _) = facts.Fact.objects.get_or_create(fact_id=fact_id)
+        f = librarian.update(fact_id, name, fact_type, body, metadata)
     else:
-        f = facts.Fact()
-
-    f.name = request.json['name']
-    f.body = request.json['body']
-    f.fact_type = request.json['fact_type']
-    f.metadata = request.json['metadata']
-    f.save()
+        f = librarian.create(name, fact_type, body, metadata)
 
     return jsonify(resp=f)
 

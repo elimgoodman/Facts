@@ -50,6 +50,9 @@ class Fact:
         
         return Fact(fact_type, name, "\n".join(body), metadata)
 
+    def get_path(self):
+        return "%s.spiral" % (self.name)
+
 class FactEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, (datetime.datetime, datetime.date)):
@@ -62,21 +65,52 @@ class FactEncoder(json.JSONEncoder):
 @Singleton
 class Librarian:
 
-    def __init__(self, path="/Users/eli/dev/facts/sample-project"):
-        self.facts = self.ingest_all_at_path(path)
+    def __init__(self, p="/Users/eli/dev/facts/sample-project"):
+        self.facts = self.ingest_all_at_path(p)
+        self.path = p
 
     def get_all(self):
-        return self.facts
+        return self.facts.values()
+    
+    def get_by_id(self, fact_id):
+        return self.facts[fact_id]
     
     def get_by_type(self, typ):
         return filter(lambda f: f.fact_type == typ, self.facts)
+    
+    def create(self, name, fact_type, body, metadata):
+        f = Fact(name, fact_type, body, metadata)
+        self.facts[f.fact_id] = f
+        self.write(f)
+        return f
+
+    def update(self, fact_id, name, fact_type, body, metadata):
+        f = self.get_by_id(fact_id)
+        f.name = name
+        f.fact_type = fact_type
+        f.body = body
+        f.metadata = metadata
+        self.write(f)
+        return f
+
+    def write(self, fact):
+        path = fact.get_path()
+        abs_path = path_mod(self.path) / path
+        f = file(abs_path, 'w')
+        data = fact.metadata
+        data['fact_type'] = fact.fact_type
+        data['name'] = fact.name
+        f.write("-- %s\n" % (json.dumps(data)))
+        f.write(fact.body)
+        f.close()
+
 
     def ingest_all_at_path(self, path):
-        facts = []
+        facts = {}
         p = path_mod(path)
 
         for f in p.files():
             fact = Fact.from_file(f)
-            facts.append(fact)
+            facts[fact.fact_id] = fact
 
         return facts
