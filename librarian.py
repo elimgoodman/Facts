@@ -6,7 +6,7 @@ import datetime
 
 class Fact:
 
-    def __init__(self, fact_type, name, body, metadata = {}):
+    def __init__(self, name, fact_type, body, metadata = {}):
         self.fact_id = md5.new(name + fact_type).hexdigest()
         self.fact_type = fact_type
         self.name = name
@@ -26,7 +26,14 @@ class Fact:
     
     def toJSON(self):
         data = self.__dict__
+        data['signature'] = self.get_signature()
         return data
+    
+    def get_signature(self):
+        if self.fact_type == 'fn':
+            return "foo"
+        else:
+            return None
 
     @classmethod
     def from_file(cls, path):
@@ -48,7 +55,7 @@ class Fact:
             else:
                 body.append(line)
         
-        return Fact(fact_type, name, "\n".join(body), metadata)
+        return Fact(name, fact_type, "\n".join(body), metadata)
 
     def get_path(self):
         return "%s.spiral" % (self.name)
@@ -76,7 +83,7 @@ class Librarian:
         return self.facts[fact_id]
     
     def get_by_type(self, typ):
-        return filter(lambda f: f.fact_type == typ, self.facts)
+        return filter(lambda f: f.fact_type == typ, self.get_all())
     
     def create(self, name, fact_type, body, metadata):
         f = Fact(name, fact_type, body, metadata)

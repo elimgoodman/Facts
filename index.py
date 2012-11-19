@@ -33,7 +33,7 @@ def create_or_update_fact():
     fact_type = request.json['fact_type']
     metadata = request.json['metadata']
 
-    if request.json.has_key('fact_id'):
+    if request.json.has_key('fact_id') and request.json['fact_id']:
         fact_id = request.json['fact_id']
         f = librarian.update(fact_id, name, fact_type, body, metadata)
     else:
