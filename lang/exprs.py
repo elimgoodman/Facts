@@ -1,6 +1,9 @@
 from lang.output import StdOut as std
 
-class Expr(object): pass
+class Expr(object):
+
+    def to_json(self):
+        return self.__dict__
 
 class StatementList(Expr):
 
@@ -113,7 +116,7 @@ class FunctionEval(Expr):
     def __repr__(self):
         return "(FN_EVAL: %s <- %s)" % (self.fn_var_name, self.args)
 
-class Param(object):
+class Param(Expr):
 
     def __init__(self, name, typ):
         self.name = name
@@ -122,7 +125,7 @@ class Param(object):
     def __repr__(self):
         return "(PARAM: %s:%s)" % (self.name, self.typ)
 
-class Params(object):
+class Params(Expr):
 
     def __init__(self, primary, additional = []):
         self.primary = primary

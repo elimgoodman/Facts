@@ -3,6 +3,7 @@ import md5
 from path import path as path_mod
 import simplejson as json
 import datetime
+from lang.exprs import Params, Param, Expr
 
 class Fact:
 
@@ -13,25 +14,29 @@ class Fact:
         self.body = body
         self.metadata = metadata
 
-    def parseParamsFromMetadata(self):
+    def parse_params_from_metadata(self):
         #TODO: make sure the current fact is the right type,
         #has valid metadata
-        params = {}
+        params = Params(None)
         if self.metadata.has_key('takes') and self.metadata['takes']:
             for pair in self.metadata['takes'].split(","):
                 (name, typ) = pair.split(":")
-                params[name.strip()] = typ.strip()
+                p = Param(name, typ)
+                if not params.primary:
+                    params.primary = p
+                else:
+                    params.additional.append(p)
 
         return params
     
-    def toJSON(self):
+    def to_json(self):
         data = self.__dict__
         data['signature'] = self.get_signature()
         return data
     
     def get_signature(self):
         if self.fact_type == 'fn':
-            return "foo"
+            return self.parse_params_from_metadata()
         else:
             return None
 
@@ -65,7 +70,9 @@ class FactEncoder(json.JSONEncoder):
         if isinstance(obj, (datetime.datetime, datetime.date)):
             return obj.isoformat()
         elif isinstance(obj, Fact):
-            return obj.toJSON()
+            return obj.to_json()
+        elif isinstance(obj, Expr):
+            return obj.to_json()
 
         return json.JSONEncoder.default(self, obj)
 

@@ -48,13 +48,20 @@ $(function(){
         isSelected: function() {
             return this.get('selected');
         },
-        makeSignature: function() {
+        makeSignatureString: function() {
             if(this.get("fact_type") != "fn") {
                 throw "wrong type";
             }
 
-            var metadata = this.get('metadata');
+            var sig = this.get('signature');
+            var elements = [this.get('name')];
 
+            elements.push(this.stringifyParam(sig.primary));
+
+            return elements.join(' ');
+        },
+        stringifyParam: function(param) {
+            return param.name + ":" + param.typ;
         },
         url: "/fact"
     });
@@ -411,7 +418,7 @@ $(function(){
         insertSelection: function() {
             var selection = this.getSelection();
             this.hide();
-            this.editor.replaceRange(selection.makeSignature(), this.cursor_pos);
+            this.editor.replaceRange(selection.makeSignatureString(), this.cursor_pos);
         }
     });
 
