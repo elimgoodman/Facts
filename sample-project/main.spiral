@@ -1,2 +1,3 @@
 -- {"fact_type": "main_block", "name": "main"}
-add 2 to: 3 ->>
+add 2 to: 3 -> someVal
+add 4 to: someVal ->>

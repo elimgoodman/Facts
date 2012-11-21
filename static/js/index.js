@@ -21,7 +21,32 @@ $(function(){
     });
 
     Facts.Statement = Backbone.Model.extend({
-    
+        getPieces: function() {
+            var self = this;
+            var val = this.get('value');
+            var pieces = [];
+
+            pieces.push(this.piece('fn', val.fn_var_name.value));
+            pieces.push(this.piece('primary-arg', val.args.args[0].value));
+
+            _.each(val.args.args.slice(1), function(arg){
+                pieces.push(self.piece('arg-name', arg.arg_name.value + ":"));
+                pieces.push(self.piece('arg-val', arg.value.value));
+            });
+
+            var type = this.get('type');
+
+            if(type == 'ReturnStmt') {
+                pieces.push(this.piece('returner', '->>'));
+            } else if (type == 'Assignment') {
+                pieces.push(this.piece('assigner', '->'));
+                pieces.push(this.piece('symbol', this.get('symbol').value));
+            }
+            return pieces;
+        },
+        piece: function(type, value) {
+            return new Facts.StatementPiece({type: type, value: value}); 
+        }
     });
 
     Facts.StatementList = Backbone.Collection.extend({
@@ -203,20 +228,13 @@ $(function(){
         postRender: function() {
             //Update this for other statement types
             var self = this;
-            var val = this.model.get('value');
-            var pieces = [];
-
-            pieces.push(this.piece('fn', val.fn_var_name.value));
-            pieces.push(this.piece('returner', '->>'));
+            var pieces = this.model.getPieces();
 
             _.each(pieces, function(p){
                 var v = new Facts.StatementPieceView({model: p});
                 self.$el.append(v.render().el);
             });
         },
-        piece: function(type, value) {
-            return new Facts.StatementPiece({type: type, value: value}); 
-        }
     });
 
     Facts.Editor = Backbone.View.extend({
