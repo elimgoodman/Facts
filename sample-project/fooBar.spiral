@@ -1,3 +1,0 @@
--- {"fact_type": "fn", "returns": "Int", "takes": "something:Int", "name": "fooBar"}
-
-hello world

@@ -4,6 +4,7 @@ from path import path as path_mod
 import simplejson as json
 import datetime
 from lang.exprs import Params, Param, Expr
+import lang.plyer as plyer
 
 class Fact:
 
@@ -14,32 +15,9 @@ class Fact:
         self.body = body
         self.metadata = metadata
 
-    def parse_params_from_metadata(self):
-        #TODO: make sure the current fact is the right type,
-        #has valid metadata
-        params = Params(None)
-        if self.metadata.has_key('takes') and self.metadata['takes']:
-            for pair in self.metadata['takes'].split(","):
-                (name, typ) = pair.split(":")
-                p = Param(name, typ)
-                if not params.primary:
-                    params.primary = p
-                else:
-                    params.additional.append(p)
-
-        return params
-    
     def to_json(self):
-        data = self.__dict__
-        data['signature'] = self.get_signature()
-        return data
+        return self.__dict__
     
-    def get_signature(self):
-        if self.fact_type == 'fn':
-            return self.parse_params_from_metadata()
-        else:
-            return None
-
     @classmethod
     def from_file(cls, path):
         divider = "--"
@@ -59,11 +37,43 @@ class Fact:
 
             else:
                 body.append(line)
-        
-        return Fact(name, fact_type, "\n".join(body), metadata)
+
+        #FIXME: make this a factory of sorts
+        return Fn(name, fact_type, "\n".join(body), metadata)
 
     def get_path(self):
         return "%s.spiral" % (self.name)
+
+class Fn(Fact):
+
+    def to_json(self):
+        #FIXME: why doesn't this work?
+        #data = super(Fn, self).to_json()
+        data = self.__dict__
+        data['signature'] = self.parse_params_from_metadata()
+        data['statements'] = self.get_statements()
+        return data
+
+    def parse_params_from_metadata(self):
+        #TODO: make sure the current fact is the right type,
+        #has valid metadata
+        params = Params(None)
+        if self.metadata.has_key('takes') and self.metadata['takes']:
+            for pair in self.metadata['takes'].split(","):
+                (name, typ) = pair.split(":")
+                p = Param(name, typ)
+                if not params.primary:
+                    params.primary = p
+                else:
+                    params.additional.append(p)
+
+        return params
+    
+    def get_statements(self):
+        plyer.lexer.input(self.body)
+        statements = plyer.parser.parse(self.body, lexer=plyer.lexer)
+
+        return statements
 
 class FactEncoder(json.JSONEncoder):
     def default(self, obj):

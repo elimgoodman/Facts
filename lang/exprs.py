@@ -3,7 +3,9 @@ from lang.output import StdOut as std
 class Expr(object):
 
     def to_json(self):
-        return self.__dict__
+        data = self.__dict__
+        data['type'] = self.__class__.__name__
+        return data
 
 class StatementList(Expr):
 

@@ -20,6 +20,14 @@ $(function(){
         postInit: $.noop
     });
 
+    Facts.Statement = Backbone.Model.extend({
+    
+    });
+
+    Facts.StatementList = Backbone.Collection.extend({
+        model: Facts.Statement
+    });
+
     Facts.Fact = Backbone.Model.extend({
         defaults: {
             selected: false,
@@ -28,6 +36,13 @@ $(function(){
             body: "",
             metadata: {},
             fact_id: null
+        },
+        getStatements: function() {
+            var stmts = _.map(this.get('statements').statements, function(s) {
+                return new Facts.Statement(s);
+            });
+
+            return new Facts.StatementList(stmts);
         },
         parse: function(r) {
             if(r.resp) {
@@ -168,44 +183,65 @@ $(function(){
         }
     });
 
-    Facts.Editor = Backbone.View.extend({
-        el: $("#code"),
-        events: {
-            'keydown': 'maybeBlur'
-        },
-        maybeBlur: function(e) {
-            if(e.keyCode == 27) { //esc
-                this.code_mirror.blur();
-            }
-        },
-        initialize: function() {
-            this.$el.val("");
-            Facts.SelectedFact.bind('change', this.renderAndFocus, this);
-            CodeMirror.keyMap.basic['Esc'] = function(cm) {
-                $("*").blur();
-            };
+    Facts.StatementPiece = Backbone.Model.extend({
+    
+    });
 
-            extraKeys = {};
+    Facts.StatementPieceView = Facts.MView.extend({
+        className: 'statement-piece',
+        tagName: 'span',
+        template: _.template($('#statement-piece-tmpl').html()),
+        postRender: function() {
+            this.$el.addClass(this.model.get('type'));
+        }
+    });
 
-            this.code_mirror = CodeMirror.fromTextArea(this.el, {
-                extraKeys: {
-                    'Shift-4': function(cm) {
-                        Facts.TheSelector.showInEditor(cm);
-                        return false;
-                    }
-                }
+    Facts.StatementView = Facts.MView.extend({
+        className: 'statement',
+        tagName: 'li',
+        template: _.template($('#statement-tmpl').html()),
+        postRender: function() {
+            //Update this for other statement types
+            var self = this;
+            var val = this.model.get('value');
+            var pieces = [];
+
+            pieces.push(this.piece('fn', val.fn_var_name.value));
+            pieces.push(this.piece('returner', '->>'));
+
+            _.each(pieces, function(p){
+                var v = new Facts.StatementPieceView({model: p});
+                self.$el.append(v.render().el);
             });
-
         },
-        renderAndFocus: function() {
-            this.render();
-            this.code_mirror.focus();
+        piece: function(type, value) {
+            return new Facts.StatementPiece({type: type, value: value}); 
+        }
+    });
+
+    Facts.Editor = Backbone.View.extend({
+        el: $("#statements"),
+        initialize: function() {
+            Facts.SelectedFact.bind('change', _.compose(this.render, this.focus), this);
         },
         render: function() {
-            this.code_mirror.setValue(Facts.SelectedFact.get().get('body'));
+            var fact = Facts.SelectedFact.get();
+            var statements = fact.getStatements();
+
+            var self = this;
+            self.$el.empty();
+
+            statements.each(function(stmt){
+                console.log(stmt.toJSON());
+                var v = new Facts.StatementView({model: stmt});
+                self.$el.append(v.render().el);
+            });
+        },
+        focus: function() {
+            //noopfor now
         },
         getVal: function() {
-            return this.code_mirror.getValue();
+            //return this.code_mirror.getValue();
         }
     });
 

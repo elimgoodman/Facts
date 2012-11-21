@@ -28,7 +28,7 @@
                     <div id="code-container">
                         <div id="fact-info" class="arrow_box">
                         </div>
-                        <textarea class="code-area" id="code"></textarea>
+                        <ul id="statements"></ul>
                     </div>
                     <textarea class="code-area" id="output"></textarea>
                     <div id="command-bar">
@@ -61,6 +61,13 @@
 
     <script type="text/html" id="fact-selector-info-tmpl">
         <%= name %>
+    </script>
+
+    <script type="text/html" id="statement-tmpl">
+    </script>
+
+    <script type="text/html" id="statement-piece-tmpl">
+        <%= value %>
     </script>
 
     <script type="text/html" id="fn-fact-info-tmpl">
