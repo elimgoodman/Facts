@@ -565,7 +565,8 @@ $(function(){
             this.$el.html(Facts.Mode.getMode());
         }
     });
-    
+
+    //noop
     Facts.Cursor = _.extend({
         statement: null,
         piece: null,
