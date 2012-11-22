@@ -20,32 +20,117 @@ $(function(){
         postInit: $.noop
     });
 
+    Facts.StatementPiece = Backbone.Model.extend({
+        getValue: function() {
+            return this.get("value");
+        },
+        isEditable: function() {
+            return true;
+        },
+        select: function() {
+            this.set({selected: true});
+        },
+        deselect: function() {
+            this.set({selected: false});
+        },
+        isSelected: function() {
+            return this.get('selected');
+        }
+    });
+    Facts.FnPiece = Facts.StatementPiece.extend({
+        getType: function() {
+            return "fn";
+        }
+    });
+    Facts.PrimaryArgPiece = Facts.StatementPiece.extend({
+        getType: function() {
+            return "primary-arg";
+        }
+    });
+    Facts.ArgNamePiece = Facts.StatementPiece.extend({
+        getValue: function() {
+            return this.get("value") + ":";
+        },
+        isEditable: function() {
+            return false;
+        },
+        getType: function() {
+            return "arg-name";
+        }
+    });
+    Facts.ArgValPiece = Facts.StatementPiece.extend({
+        getType: function() {
+            return "arg-val";
+        }
+    });
+    Facts.ReturnerPiece = Facts.StatementPiece.extend({
+        getValue: function() {
+            return "->>";
+        },
+        getType: function() {
+            return "returner";
+        }
+    });
+    Facts.AssignerPiece = Facts.StatementPiece.extend({
+        getValue: function() {
+            return "->";
+        },
+        getType: function() {
+            return "assigner";
+        }
+    });
+    Facts.SymbolPiece = Facts.StatementPiece.extend({
+        getType: function() {
+            return "symbol";
+        }
+    });
+
     Facts.Statement = Backbone.Model.extend({
+        initialize: function() {
+            this.pieces = this.generatePieces();  
+        },
+        defaults: {
+            selected: false
+        },
         getPieces: function() {
+            return this.pieces;
+        },
+        generatePieces: function() {
             var self = this;
             var val = this.get('value');
             var pieces = [];
 
-            pieces.push(this.piece('fn', val.fn_var_name.value));
-            pieces.push(this.piece('primary-arg', val.args.args[0].value));
+            pieces.push(new Facts.FnPiece({value: val.fn_var_name.value}));
+            pieces.push(new Facts.PrimaryArgPiece({value: val.args.args[0].value}));
 
             _.each(val.args.args.slice(1), function(arg){
-                pieces.push(self.piece('arg-name', arg.arg_name.value + ":"));
-                pieces.push(self.piece('arg-val', arg.value.value));
+                pieces.push(new Facts.ArgNamePiece({value: arg.arg_name.value}));
+                pieces.push(new Facts.ArgValPiece({value: arg.value.value}));
             });
 
             var type = this.get('type');
 
             if(type == 'ReturnStmt') {
-                pieces.push(this.piece('returner', '->>'));
+                pieces.push(new Facts.ReturnerPiece());
             } else if (type == 'Assignment') {
-                pieces.push(this.piece('assigner', '->'));
-                pieces.push(this.piece('symbol', this.get('symbol').value));
+                pieces.push(new Facts.AssignerPiece());
+                pieces.push(new Facts.SymbolPiece({value: this.get('symbol').value}));
             }
             return pieces;
         },
-        piece: function(type, value) {
-            return new Facts.StatementPiece({type: type, value: value}); 
+        getEditablePieces: function() {
+            return _.filter(this.getPieces(), function(p){
+                return p.isEditable();
+            });
+        },
+        select: function() {
+            this.set({selected: true});
+        },
+        deselect: function() {
+            this.set({selected: false});
+        },
+        isSelected: function() {
+            return this.get('selected');
         }
     });
 
@@ -62,7 +147,13 @@ $(function(){
             metadata: {},
             fact_id: null
         },
+        initialize: function() {
+            this.statements = this.generateStatements();
+        },
         getStatements: function() {
+            return this.statements;
+        },
+        generateStatements: function() {
             var stmts = _.map(this.get('statements').statements, function(s) {
                 return new Facts.Statement(s);
             });
@@ -125,6 +216,9 @@ $(function(){
             this.f = f;
             this.f.select();
             this.trigger('change');
+
+            var statements = this.f.getStatements();
+            Facts.Cursor.setStatement(statements.at(0));
         },
         get: function() {
             return this.f;
@@ -208,16 +302,23 @@ $(function(){
         }
     });
 
-    Facts.StatementPiece = Backbone.Model.extend({
-    
-    });
-
     Facts.StatementPieceView = Facts.MView.extend({
         className: 'statement-piece',
         tagName: 'span',
         template: _.template($('#statement-piece-tmpl').html()),
         postRender: function() {
-            this.$el.addClass(this.model.get('type'));
+            this.$el.addClass(this.model.getType());
+
+            if(this.model.isSelected()) {
+                this.$el.addClass('selected');
+            } else {
+                this.$el.removeClass('selected');
+            }
+        },
+        getTemplateContext: function() {
+            return _.extend(this.model.toJSON(), {
+                value: this.model.getValue()
+            });
         }
     });
 
@@ -234,6 +335,12 @@ $(function(){
                 var v = new Facts.StatementPieceView({model: p});
                 self.$el.append(v.render().el);
             });
+
+            if(this.model.isSelected()) {
+                this.$el.addClass('selected');
+            } else {
+                this.$el.removeClass('selected');
+            }
         },
     });
 
@@ -250,7 +357,6 @@ $(function(){
             self.$el.empty();
 
             statements.each(function(stmt){
-                console.log(stmt.toJSON());
                 var v = new Facts.StatementView({model: stmt});
                 self.$el.append(v.render().el);
             });
@@ -261,10 +367,6 @@ $(function(){
         getVal: function() {
             //return this.code_mirror.getValue();
         }
-    });
-
-    Facts.FactDrawer = Backbone.View.extend({
-        el: $("#fact-drawer")
     });
 
     Facts.FactInfo = Backbone.View.extend({
@@ -309,28 +411,6 @@ $(function(){
         },
         hide: function() {
             this.$el.hide();
-        }
-    });
-
-    Facts.ActionButtons = Backbone.View.extend({
-        el: $("#action-buttons"),
-        events: {
-            'click #execute-button': 'execute'
-        },
-        hide: function() {
-            this.$el.hide();
-        },
-        show: function() {
-            this.$el.show();
-        },
-        execute: function() {
-            var params = {
-                code: $("#code").val()
-            };
-
-            $.post("/execute", params, function(data){
-                console.log(data);
-            }, "json");
         }
     });
 
@@ -476,6 +556,113 @@ $(function(){
         }
     });
 
+    Facts.ModeView = Backbone.View.extend({
+        el: $("#mode-view"),
+        initialize: function() {
+            Facts.Mode.bind('changed', this.render, this);
+        },
+        render: function() {
+            this.$el.html(Facts.Mode.getMode());
+        }
+    });
+    
+    Facts.Cursor = _.extend({
+        statement: null,
+        piece: null,
+        setStatement: function(s){
+            if(this.statement) {
+                this.statement.deselect();
+            }
+
+            this.statement = s;
+            this.statement.select();
+            this.selectFirstEditablePiece(this.statement);
+            this.trigger('changed');
+        },
+        setPiece: function(p){
+            if(this.piece) {
+                this.piece.deselect();
+            }
+
+            this.piece = p;
+            this.piece.select();
+            this.trigger('changed');
+        },
+        getStatement: function() {
+            return this.statement;
+        },
+        getPiece: function() {
+            return this.piece;
+        },
+        moveStatement: function(change_cb, cmp_cb) {
+            var fact = Facts.SelectedFact.get();
+            var statements = fact.getStatements();
+
+            var i = statements.indexOf(this.getStatement());
+            var changed = change_cb(i);
+            if(cmp_cb(changed, statements)) {
+                var changed_stmt = statements.at(changed);
+                this.setStatement(changed_stmt);
+            }
+        },
+        movePiece: function(change_cb, cmp_cb) {
+            var pieces = this.getStatement().getPieces();
+
+            var i = pieces.indexOf(this.getPiece());
+            var changed = change_cb(i);
+            if(cmp_cb(changed, pieces)) {
+                var changed_piece = pieces[changed];
+                this.setPiece(changed_piece);
+            }
+        }, 
+        nextPiece: function() {
+            return this.movePiece(function(i){
+                return i + 1;
+            }, function(changed, pieces) {
+                return changed < pieces.length;
+            });
+        },
+        previousPiece: function() {
+            return this.movePiece(function(i){
+                return i - 1;
+            }, function(changed, pieces) {
+                return changed > -1;
+            });
+        },
+        nextStatement: function() {
+            return this.moveStatement(function(i){
+                return i + 1;
+            }, function(changed, statements) {
+                return changed < statements.length;
+            });
+        },
+        previousStatement: function() {
+            return this.moveStatement(function(i){
+                return i - 1;
+            }, function(changed, statements) {
+                return changed > -1;
+            });
+        },
+        selectFirstEditablePiece: function(statement) {
+            var pieces = statement.getEditablePieces();
+            this.setPiece(pieces[0]);
+        }
+    }, Backbone.Events);
+
+    Facts.Mode = _.extend({
+        m: "move",
+        getMode: function() {
+            return this.m;
+        },
+        setMode: function(m) {
+            this.m = m;
+            this.trigger('changed');
+        },
+        isMoveMode: function() {
+            return this.getMode() == 'move';
+        }
+    }, Backbone.Events)
+
     Facts.CommandPerformer = _.extend({
         phrases: {
             'w': 'writeCurrentBuffer',
@@ -552,10 +739,10 @@ $(function(){
     Facts.TheFactInfo = new Facts.FactInfo();
     Facts.TheFactList = new Facts.FactList();
     Facts.TheEditor = new Facts.Editor();
-    Facts.TheFactDrawer = new Facts.FactDrawer();
     Facts.TheCommandBar = new Facts.CommandBar();
     Facts.TheOutput = new Facts.Output();
     Facts.TheSelector = new Facts.Selector();
+    Facts.TheModeView = new Facts.ModeView();
 
     Facts.AllFacts.bind('reset', function() {
         Facts.SelectedFact.set(Facts.AllFacts.at(0));
@@ -568,11 +755,31 @@ $(function(){
     });
     
     Mousetrap.bind("up", function(){
-        Facts.TheSelector.up();
+        if(Facts.Mode.isMoveMode()) {
+            Facts.Cursor.previousStatement();
+        } else {
+            Facts.TheSelector.up();
+        }
     });
 
     Mousetrap.bind("down", function(){
-        Facts.TheSelector.down();
+        if(Facts.Mode.isMoveMode()) {
+            Facts.Cursor.nextStatement();
+        } else {
+            Facts.TheSelector.down();
+        }
+    });
+
+    Mousetrap.bind("left", function(){
+        if(Facts.Mode.isMoveMode()) {
+            Facts.Cursor.previousPiece();
+        }
+    });
+
+    Mousetrap.bind("right", function(){
+        if(Facts.Mode.isMoveMode()) {
+            Facts.Cursor.nextPiece();
+        }
     });
 
     Mousetrap.bind("enter", function(e){
@@ -591,6 +798,7 @@ $(function(){
         }
     });
 
+    Facts.Mode.setMode("move");
     $("body").focus();
 
     window.Facts = Facts;

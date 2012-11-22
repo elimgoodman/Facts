@@ -255,3 +255,34 @@ body {
 #statements {
     margin-top: 24px;
 }
+
+.statement {
+    background: #eee;
+    color: #333;
+    margin-bottom: 12px;
+    line-height: 30px;
+    border: 1px solid #ccc;
+}
+
+.statement.selected {
+    border: 1px solid green;
+}
+
+.statement-piece {
+    padding: 6px;
+    border-right: 1px solid #ccc;
+}
+
+.statement-piece.selected {
+    color: black;
+    background: white;
+    font-weight: bold;
+}
+
+#mode-view {
+    position: fixed;
+    border: 1px solid #ccc;
+    padding: 12px;
+    bottom: 24px;
+    right: 24px;
+}
