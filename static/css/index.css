@@ -293,4 +293,9 @@ body {
 
 .statement.placeholder {
     height: 30px;
+    background: #49C9AE;
+}
+
+.statement.unpopulated {
+    background: #F4F788;
 }

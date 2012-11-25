@@ -160,6 +160,10 @@ $(function(){
                 return self.model.isPlaceholder();
             }, 'placeholder');
 
+            this.setClassIf(function() {
+                return self.model.isUnpopulated();
+            }, 'unpopulated');
+
             if(this.model.isSelected() && this.model.isPlaceholder()) {
                 Facts.Mode.setMode('selector');
                 Facts.TheSelector.showBelow(this);
