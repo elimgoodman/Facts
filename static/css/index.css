@@ -286,3 +286,7 @@ body {
     bottom: 24px;
     right: 24px;
 }
+
+.statement.placeholder {
+    height: 30px;
+}

@@ -17,193 +17,21 @@ $(function(){
             this.model.bind('change', this.render, this);
             this.postInit();
         },
-        postInit: $.noop
-    });
-
-    Facts.StatementPiece = Backbone.Model.extend({
-        getValue: function() {
-            return this.get("value");
-        },
-        isEditable: function() {
-            return true;
-        },
-        select: function() {
-            this.set({selected: true});
-        },
-        deselect: function() {
-            this.set({selected: false});
-        },
-        isSelected: function() {
-            return this.get('selected');
-        }
-    });
-    Facts.FnPiece = Facts.StatementPiece.extend({
-        getType: function() {
-            return "fn";
-        }
-    });
-    Facts.PrimaryArgPiece = Facts.StatementPiece.extend({
-        getType: function() {
-            return "primary-arg";
-        }
-    });
-    Facts.ArgNamePiece = Facts.StatementPiece.extend({
-        getValue: function() {
-            return this.get("value") + ":";
-        },
-        isEditable: function() {
-            return false;
-        },
-        getType: function() {
-            return "arg-name";
-        }
-    });
-    Facts.ArgValPiece = Facts.StatementPiece.extend({
-        getType: function() {
-            return "arg-val";
-        }
-    });
-    Facts.ReturnerPiece = Facts.StatementPiece.extend({
-        getValue: function() {
-            return "->>";
-        },
-        getType: function() {
-            return "returner";
-        }
-    });
-    Facts.AssignerPiece = Facts.StatementPiece.extend({
-        getValue: function() {
-            return "->";
-        },
-        getType: function() {
-            return "assigner";
-        }
-    });
-    Facts.SymbolPiece = Facts.StatementPiece.extend({
-        getType: function() {
-            return "symbol";
-        }
-    });
-
-    Facts.Statement = Backbone.Model.extend({
-        initialize: function() {
-            this.pieces = this.generatePieces();  
-        },
-        defaults: {
-            selected: false
-        },
-        getPieces: function() {
-            return this.pieces;
-        },
-        generatePieces: function() {
-            var self = this;
-            var val = this.get('value');
-            var pieces = [];
-
-            pieces.push(new Facts.FnPiece({value: val.fn_var_name.value}));
-            pieces.push(new Facts.PrimaryArgPiece({value: val.args.args[0].value}));
-
-            _.each(val.args.args.slice(1), function(arg){
-                pieces.push(new Facts.ArgNamePiece({value: arg.arg_name.value}));
-                pieces.push(new Facts.ArgValPiece({value: arg.value.value}));
-            });
-
-            var type = this.get('type');
-
-            if(type == 'ReturnStmt') {
-                pieces.push(new Facts.ReturnerPiece());
-            } else if (type == 'Assignment') {
-                pieces.push(new Facts.AssignerPiece());
-                pieces.push(new Facts.SymbolPiece({value: this.get('symbol').value}));
-            }
-            return pieces;
-        },
-        getEditablePieces: function() {
-            return _.filter(this.getPieces(), function(p){
-                return p.isEditable();
-            });
-        },
-        select: function() {
-            this.set({selected: true});
-        },
-        deselect: function() {
-            this.set({selected: false});
-        },
-        isSelected: function() {
-            return this.get('selected');
-        }
-    });
-
-    Facts.StatementList = Backbone.Collection.extend({
-        model: Facts.Statement
-    });
-
-    Facts.Fact = Backbone.Model.extend({
-        defaults: {
-            selected: false,
-            name: "",
-            fact_type: null,
-            body: "",
-            metadata: {},
-            fact_id: null
-        },
-        initialize: function() {
-            this.statements = this.generateStatements();
-        },
-        getStatements: function() {
-            return this.statements;
-        },
-        generateStatements: function() {
-            var stmts = _.map(this.get('statements').statements, function(s) {
-                return new Facts.Statement(s);
-            });
-
-            return new Facts.StatementList(stmts);
-        },
-        parse: function(r) {
-            if(r.resp) {
-                //from post
-                return r.resp;
+        postInit: $.noop,
+        setClassIf: function(if_cb, class_name) {
+            if(if_cb()) {
+                this.$el.addClass(class_name);
             } else {
-                //from collection
-                return r;
+                this.$el.removeClass(class_name);
             }
         },
-        idAttribute: "fact_id",
-        select: function() {
-            this.set({selected: true});
-        },
-        deselect: function() {
-            this.set({selected: false});
-        },
-        isSelected: function() {
-            return this.get('selected');
-        },
-        makeSignatureString: function() {
-            if(this.get("fact_type") != "fn") {
-                throw "wrong type";
-            }
-
-            var sig = this.get('signature');
-            var elements = [this.get('name')];
-
-            elements.push(this.stringifyParam(sig.primary));
-
-            return elements.join(' ');
-        },
-        stringifyParam: function(param) {
-            return param.name + ":" + param.typ;
-        },
-        url: "/fact"
-    });
-    Facts.FactCollection = Backbone.Collection.extend({
-        model: Facts.Fact,
-        url: '/facts',
-        parse: function(r) {
-            return r.resp;
+        setSelectedClass: function() {
+            var self = this;
+            this.setClassIf(function() {
+                return self.model.isSelected();
+            }, 'selected');
         }
     });
-    Facts.AllFacts = new Facts.FactCollection();
 
     Facts.SelectedFact = _.extend({
         set: function(f) {
@@ -234,9 +62,7 @@ $(function(){
         template: _.template($('#fact-list-tmpl').html()),
         postRender: function() {
             this.$el.addClass(this.model.get('fact_type'));
-            if(this.model.get('selected')) {
-                this.$el.addClass('selected');
-            }
+            this.setSelectedClass();
         },
         select: function() {
             Facts.SelectedFact.set(this.model);
@@ -248,11 +74,7 @@ $(function(){
         className: 'selector-fact',
         template: _.template($('#fact-selector-list-tmpl').html()),
         postRender: function() {
-            if(this.model.isSelected()) {
-                this.$el.addClass('selected');
-            } else {
-                this.$el.removeClass('selected');
-            }
+            this.setSelectedClass();
         }
     });
 
@@ -309,11 +131,7 @@ $(function(){
         postRender: function() {
             this.$el.addClass(this.model.getType());
 
-            if(this.model.isSelected()) {
-                this.$el.addClass('selected');
-            } else {
-                this.$el.removeClass('selected');
-            }
+            this.setSelectedClass();
         },
         getTemplateContext: function() {
             return _.extend(this.model.toJSON(), {
@@ -336,22 +154,24 @@ $(function(){
                 self.$el.append(v.render().el);
             });
 
-            if(this.model.isSelected()) {
-                this.$el.addClass('selected');
-            } else {
-                this.$el.removeClass('selected');
+            this.setSelectedClass();
+
+            this.setClassIf(function() {
+                return self.model.isPlaceholder();
+            }, 'placeholder');
+
+            if(this.model.isSelected() && this.model.isPlaceholder()) {
+                Facts.TheSelector.showBelow(this.$el);
             }
         },
     });
-
-    Facts.Editor = Backbone.View.extend({
-        el: $("#statements"),
-        initialize: function() {
-            Facts.SelectedFact.bind('change', _.compose(this.render, this.focus), this);
-        },
-        render: function() {
-            var fact = Facts.SelectedFact.get();
-            var statements = fact.getStatements();
+    
+    Facts.FactEditorView = Facts.MView.extend({
+        tagName: 'div',
+        className: 'fact-editor',
+        template: _.template($('#fact-editor-tmpl').html()),
+        postRender: function() {
+            var statements = this.model.getStatements();
 
             var self = this;
             self.$el.empty();
@@ -360,12 +180,18 @@ $(function(){
                 var v = new Facts.StatementView({model: stmt});
                 self.$el.append(v.render().el);
             });
+        }
+    });
+
+    Facts.Editor = Backbone.View.extend({
+        el: $("#statements"),
+        initialize: function() {
+            Facts.SelectedFact.bind('change', this.render, this);
         },
-        focus: function() {
-            //noopfor now
-        },
-        getVal: function() {
-            //return this.code_mirror.getValue();
+        render: function() {
+            var fact = Facts.SelectedFact.get();
+            var v = new Facts.FactEditorView({model: fact});
+            this.$el.html(v.render().el);
         }
     });
 
@@ -432,13 +258,9 @@ $(function(){
             'keydown': 'beginNavigating'
         },
         initialize: function() {
-            this.node = this.$el.get(0);
             this.selector_text = this.$(".selector-text");
             this.possibilty_list = this.$(".selector-possibilities");
             this.fact_info = this.$(".selector-fact-info-container");
-
-            this.editor = null;
-            this.cursor_pos = null;
 
             this.possibilties = new Facts.FactCollection();
             this.possibilties.on('reset', this.renderPossibilities, this);
@@ -446,15 +268,8 @@ $(function(){
             this.selection = null;
             this.on('selection-changed', this.renderFactInfo, this);
         },
-        showInEditor: function(editor) {
-            this.editor = editor;
-            this.cursor_pos = editor.getCursor();
-
-            $(".CodeMirror-cursor").addClass("selector-mode");
-            editor.addWidget(this.cursor_pos, this.node);
-
-            $("*").blur();
-            this.reposition(this.node);
+        showBelow: function(node) {
+            this.reposition(node);
             this.$el.show();
             this.selector_text.focus();
         },
@@ -559,14 +374,13 @@ $(function(){
     Facts.ModeView = Backbone.View.extend({
         el: $("#mode-view"),
         initialize: function() {
-            Facts.Mode.bind('changed', this.render, this);
+            Facts.Mode.bind('change', this.render, this);
         },
         render: function() {
             this.$el.html(Facts.Mode.getMode());
         }
     });
 
-    //noop
     Facts.Cursor = _.extend({
         statement: null,
         piece: null,
@@ -578,7 +392,7 @@ $(function(){
             this.statement = s;
             this.statement.select();
             this.selectFirstEditablePiece(this.statement);
-            this.trigger('changed');
+            this.trigger('change');
         },
         setPiece: function(p){
             if(this.piece) {
@@ -587,7 +401,7 @@ $(function(){
 
             this.piece = p;
             this.piece.select();
-            this.trigger('changed');
+            this.trigger('change');
         },
         getStatement: function() {
             return this.statement;
@@ -607,7 +421,7 @@ $(function(){
             }
         },
         movePiece: function(change_cb, cmp_cb) {
-            var pieces = this.getStatement().getPieces();
+            var pieces = this.getStatement().getEditablePieces();
 
             var i = pieces.indexOf(this.getPiece());
             var changed = change_cb(i);
@@ -646,7 +460,19 @@ $(function(){
         },
         selectFirstEditablePiece: function(statement) {
             var pieces = statement.getEditablePieces();
-            this.setPiece(pieces[0]);
+            if(pieces.length > 0){
+                this.setPiece(pieces[0]);
+            }
+        },
+        insertBelow: function() {
+            var fact = Facts.SelectedFact.get();
+            var statements = fact.getStatements();
+
+            var i = statements.indexOf(this.getStatement());
+            var stmt = new Facts.PlaceholderStatement;
+            statements.add(stmt, {at: i + 1});
+            fact.setStatements(statements);
+            this.setStatement(stmt);
         }
     }, Backbone.Events);
 
@@ -657,10 +483,13 @@ $(function(){
         },
         setMode: function(m) {
             this.m = m;
-            this.trigger('changed');
+            this.trigger('change');
         },
         isMoveMode: function() {
-            return this.getMode() == 'move';
+            return this.isMode('move');
+        },
+        isMode: function(mode) {
+            return this.getMode() == mode;
         }
     }, Backbone.Events)
 
@@ -751,45 +580,46 @@ $(function(){
     Facts.AllFacts.fetch();
 
     //Global keys
-    Mousetrap.bind(":", function(){
-        Facts.TheCommandBar.show();
-    });
+
+    var keys = {
+        'move': {
+            'up': _.bind(Facts.Cursor.previousStatement, Facts.Cursor),
+            'down': _.bind(Facts.Cursor.nextStatement, Facts.Cursor),
+            'left': _.bind(Facts.Cursor.previousPiece, Facts.Cursor),
+            'right': _.bind(Facts.Cursor.nextPiece, Facts.Cursor),
+            'o': _.bind(Facts.Cursor.insertBelow, Facts.Cursor)
+        },
+        'selector': {
+            'up': _.bind(Facts.TheSelector.up, Facts.TheSelector),
+            'down': _.bind(Facts.TheSelector.down, Facts.TheSelector),
+            'enter': function(e) {
+                Facts.TheSelector.insertSelection();
+                e.preventDefault();
+            },
+            'esc': _.bind(Facts.TheSelector.hide, Facts.TheSelector)
+        }
+    };
     
-    Mousetrap.bind("up", function(){
-        if(Facts.Mode.isMoveMode()) {
-            Facts.Cursor.previousStatement();
-        } else {
-            Facts.TheSelector.up();
-        }
+    var mappings_by_key = {};
+    _.each(_.keys(keys), function(mode){
+        var mappings = keys[mode];
+        _.each(_.keys(mappings), function(key) {
+            if(!_.has(mappings_by_key, key)) {
+                mappings_by_key[key] = {};
+            }
+
+            mappings_by_key[key][mode] = mappings[key];
+        });
     });
 
-    Mousetrap.bind("down", function(){
-        if(Facts.Mode.isMoveMode()) {
-            Facts.Cursor.nextStatement();
-        } else {
-            Facts.TheSelector.down();
-        }
-    });
-
-    Mousetrap.bind("left", function(){
-        if(Facts.Mode.isMoveMode()) {
-            Facts.Cursor.previousPiece();
-        }
-    });
-
-    Mousetrap.bind("right", function(){
-        if(Facts.Mode.isMoveMode()) {
-            Facts.Cursor.nextPiece();
-        }
-    });
-
-    Mousetrap.bind("enter", function(e){
-        Facts.TheSelector.insertSelection();
-        e.preventDefault();
-    });
-
-    Mousetrap.bind("esc", function(e){
-        Facts.TheSelector.hide();
+    _.each(_.keys(mappings_by_key), function(key) {
+        Mousetrap.bind(key, function(e){
+            _.each(_.keys(mappings_by_key[key]), function(mode){
+                if(Facts.Mode.isMode(mode)) {
+                    mappings_by_key[key][mode](e);
+                }
+            });
+        });
     });
 
     $(".escapable").live('keydown', function(e){
