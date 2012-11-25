@@ -161,7 +161,8 @@ $(function(){
             }, 'placeholder');
 
             if(this.model.isSelected() && this.model.isPlaceholder()) {
-                Facts.TheSelector.showBelow(this.$el);
+                Facts.Mode.setMode('selector');
+                Facts.TheSelector.showBelow(this);
             }
         },
     });
@@ -265,17 +266,21 @@ $(function(){
             this.possibilties = new Facts.FactCollection();
             this.possibilties.on('reset', this.renderPossibilities, this);
 
+            this.statement_view = null;
+
             this.selection = null;
             this.on('selection-changed', this.renderFactInfo, this);
         },
-        showBelow: function(node) {
-            this.reposition(node);
+        showBelow: function(statement_view) {
+            this.statement_view = statement_view;
+
             this.$el.show();
+            this.reposition(statement_view.el);
             this.selector_text.focus();
         },
         hide: function() {
             this.$el.hide();
-            this.editor.focus();
+            Facts.Mode.setMode('move');
             this.reset();
         },
         reset: function() {
@@ -284,15 +289,12 @@ $(function(){
             this.fact_info.empty();
         },
         reposition: function(node) {
-            var current_top = $(node).css('top');
-            var top_num = parseInt(current_top.split('p')[0]);
-            top_num += 20;
-            $(node).css('top', top_num + "px");
+            var offset = $(node).offset();
+            var top = offset.top + 50;
+            this.$el.css('top', top + "px");
 
-            var current_left = $(node).css('left');
-            var left_num  = parseInt(current_left.split('p')[0]);
-            left_num -= 10;
-            $(node).css('left', left_num + "px");
+            var left = offset.left - 10;
+            this.$el.css('left', left + "px");
         },
         findActions: function(e) {
             //FIXME: this should probably be done using the Collection.fetch
@@ -366,8 +368,20 @@ $(function(){
         },
         insertSelection: function() {
             var selection = this.getSelection();
+
+            var fact = Facts.SelectedFact.get();
+            var statements = fact.getStatements();
+
+            var i = statements.indexOf(this.statement_view.model);
+            var stmt = new Facts.UnpopulatedStatement({fact: selection});
+
+            statements.remove(this.statement_view.model);
+            statements.add(stmt, {at: i});
+            fact.setStatements(statements);
+
+            Facts.Cursor.setStatement(stmt);
+
             this.hide();
-            this.editor.replaceRange(selection.makeSignatureString(), this.cursor_pos);
         }
     });
 
@@ -391,7 +405,11 @@ $(function(){
 
             this.statement = s;
             this.statement.select();
-            this.selectFirstEditablePiece(this.statement);
+            if(this.statement.isUnpopulated()) {
+                this.selectPrimaryArg();
+            } else {
+                this.selectFirstEditablePiece();
+            }
             this.trigger('change');
         },
         setPiece: function(p){
@@ -458,11 +476,17 @@ $(function(){
                 return changed > -1;
             });
         },
-        selectFirstEditablePiece: function(statement) {
-            var pieces = statement.getEditablePieces();
+        setPieceAt: function(i) {
+            var pieces = this.getStatement().getEditablePieces();
             if(pieces.length > 0){
-                this.setPiece(pieces[0]);
+                this.setPiece(pieces[i]);
             }
+        },
+        selectPrimaryArg: function() {
+            this.setPieceAt(1);
+        },
+        selectFirstEditablePiece: function() {
+            this.setPieceAt(0);
         },
         insertBelow: function() {
             var fact = Facts.SelectedFact.get();
@@ -470,8 +494,11 @@ $(function(){
 
             var i = statements.indexOf(this.getStatement());
             var stmt = new Facts.PlaceholderStatement;
+
             statements.add(stmt, {at: i + 1});
+
             fact.setStatements(statements);
+
             this.setStatement(stmt);
         }
     }, Backbone.Events);
@@ -510,7 +537,7 @@ $(function(){
             if(this[action]) {
                 this[action](args);
             } else {
-                console.log("INVALID PHRASE");
+                console.error("INVALID PHRASE");
             }
         },
         setCurrentFactFields: function() {

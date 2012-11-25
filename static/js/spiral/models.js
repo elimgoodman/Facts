@@ -45,7 +45,17 @@
             return "arg-val";
         }
     });
-    Facts.ReturnerPiece = Facts.StatementPiece.extend({
+
+    Facts.ResultPiece = Facts.StatementPiece.extend({
+        getValue: function() {
+            return "--";
+        },
+        getType: function() {
+            'result'
+        }
+    });
+
+    Facts.ReturnerPiece = Facts.ResultPiece.extend({
         getValue: function() {
             return "->>";
         },
@@ -53,7 +63,7 @@
             return "returner";
         }
     });
-    Facts.AssignerPiece = Facts.StatementPiece.extend({
+    Facts.AssignerPiece = Facts.ResultPiece.extend({
         getValue: function() {
             return "->";
         },
@@ -61,6 +71,7 @@
             return "assigner";
         }
     });
+
     Facts.SymbolPiece = Facts.StatementPiece.extend({
         getType: function() {
             return "symbol";
@@ -116,6 +127,9 @@
         },
         isPlaceholder: function() {
             return false;
+        },
+        isUnpopulated: function() {
+            return false;
         }
     });
 
@@ -125,6 +139,41 @@
             return [];
         },
         isPlaceholder: function() {
+            return true;
+        }
+    });
+
+    Facts.UnpopulatedStatement = Facts.Statement.extend({
+        defaults: {
+            fact: null
+        },
+        generatePieces: function() {
+            var self = this;
+            var fact = this.get('fact');
+            var sig = fact.get('signature');
+
+            var pieces = [];
+
+            pieces.push(new Facts.FnPiece({value: fact.get('name')}));
+            pieces.push(new Facts.PrimaryArgPiece({value: sig.primary.name}));
+            pieces.push(new Facts.ResultPiece());
+
+            //_.each(val.args.args.slice(1), function(arg){
+                //pieces.push(new Facts.ArgNamePiece({value: arg.arg_name.value}));
+                //pieces.push(new Facts.ArgValPiece({value: arg.value.value}));
+            //});
+
+            //var type = this.get('type');
+
+            //if(type == 'ReturnStmt') {
+                //pieces.push(new Facts.ReturnerPiece());
+            //} else if (type == 'Assignment') {
+                //pieces.push(new Facts.AssignerPiece());
+                //pieces.push(new Facts.SymbolPiece({value: this.get('symbol').value}));
+            //}
+            return pieces;
+        },
+        isUnpopulated: function() {
             return true;
         }
     });
@@ -140,17 +189,18 @@
             fact_type: null,
             body: "",
             metadata: {},
-            fact_id: null
+            fact_id: null,
+            statements: null
         },
         initialize: function() {
-            this.statements = this.generateStatements();
+            this.set({statements: this.generateStatements()}, {silent: true});
         },
         getStatements: function() {
-            return this.statements;
+            return this.get('statements');
         },
         setStatements: function(statements) {
-            this.statements = statements;
-            this.trigger('change');
+            this.set({statements: statements});
+            this.trigger('change'); //why is this necessary?
         },
         generateStatements: function() {
             var stmts = _.map(this.get('statements').statements, function(s) {
@@ -178,23 +228,9 @@
         isSelected: function() {
             return this.get('selected');
         },
-        makeSignatureString: function() {
-            if(this.get("fact_type") != "fn") {
-                throw "wrong type";
-            }
-
-            var sig = this.get('signature');
-            var elements = [this.get('name')];
-
-            elements.push(this.stringifyParam(sig.primary));
-
-            return elements.join(' ');
-        },
-        stringifyParam: function(param) {
-            return param.name + ":" + param.typ;
-        },
         url: "/fact"
     });
+
     Facts.FactCollection = Backbone.Collection.extend({
         model: Facts.Fact,
         url: '/facts',
