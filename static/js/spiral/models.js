@@ -1,6 +1,9 @@
 (function(){
 
     var Facts = window.Facts || {};
+    
+    Facts.ValueHint = Backbone.Model.extend({
+    });
 
     Facts.StatementPiece = Backbone.Model.extend({
         getValue: function() {
@@ -17,6 +20,9 @@
         },
         isSelected: function() {
             return this.get('selected');
+        },
+        getHints: function() {
+            return [];
         }
     });
     Facts.FnPiece = Facts.StatementPiece.extend({
@@ -59,6 +65,12 @@
         },
         getType: function() {
             'result'
+        },
+        getHints: function() {
+            return [
+                new Facts.ValueHint({display_text: "return"}),
+                new Facts.ValueHint({display_text: "assign"})
+            ];
         }
     });
 
