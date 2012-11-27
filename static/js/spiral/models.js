@@ -24,7 +24,14 @@
             return "fn";
         }
     });
-    Facts.PrimaryArgPiece = Facts.StatementPiece.extend({
+    
+    Facts.ArgPiece = Facts.StatementPiece.extend({
+        setValue: function(val, silent) {
+            this.set({value: val}, {silent: silent});
+        }
+    });
+
+    Facts.PrimaryArgPiece = Facts.ArgPiece.extend({
         getType: function() {
             return "primary-arg";
         }
@@ -40,7 +47,7 @@
             return "arg-name";
         }
     });
-    Facts.ArgValPiece = Facts.StatementPiece.extend({
+    Facts.ArgValPiece = Facts.ArgPiece.extend({
         getType: function() {
             return "arg-val";
         }
@@ -57,7 +64,7 @@
 
     Facts.ReturnerPiece = Facts.ResultPiece.extend({
         getValue: function() {
-            return "->>";
+            return "and return";
         },
         getType: function() {
             return "returner";
@@ -65,7 +72,7 @@
     });
     Facts.AssignerPiece = Facts.ResultPiece.extend({
         getValue: function() {
-            return "->";
+            return "and assign to:";
         },
         getType: function() {
             return "assigner";

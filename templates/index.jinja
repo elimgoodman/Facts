@@ -10,6 +10,7 @@
         <script src="{{ url_for('static', filename='js/underscore.js') }}" type="text/javascript"></script>
         <script src="{{ url_for('static', filename='js/backbone.js') }}" type="text/javascript"></script>
         <script src="{{ url_for('static', filename='js/autogrow.js') }}" type="text/javascript"></script>
+        <script src="{{ url_for('static', filename='js/spiral/command_performer.js') }}" type="text/javascript"></script>
         <script src="{{ url_for('static', filename='js/spiral/models.js') }}" type="text/javascript"></script>
         <script src="{{ url_for('static', filename='js/spiral/spiral.js') }}" type="text/javascript"></script>
     </head>
@@ -67,7 +68,11 @@
     </script>
 
     <script type="text/html" id="statement-piece-tmpl">
-        <%= value %>
+        <% if(isEditable) { %>
+            <input class="piece-value escapable" />
+        <% } else { %>
+            <%= value %>
+        <% } %>
     </script>
 
     <script type="text/html" id="fn-fact-info-tmpl">
@@ -88,7 +93,12 @@
         </div>
     </script>
 
-    <div id="selector">
+    <div id="value-hints" class="floating-box">
+        <ul class="hint-possibilities">
+        </ul>
+    </div>
+
+    <div id="selector" class="floating-box">
         <input class="selector-text" />
         <ul class="selector-possibilities">
         </ul>
