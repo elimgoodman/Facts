@@ -3,9 +3,24 @@
     var Facts = window.Facts || {};
     
     Facts.ValueHint = Backbone.Model.extend({
+        defaults: {
+            selected: false
+        },
+        select: function() {
+            this.set({selected: true});
+        },
+        deselect: function() {
+            this.set({selected: false});
+        },
+        isSelected: function() {
+            return this.get('selected');
+        },
     });
 
     Facts.StatementPiece = Backbone.Model.extend({
+        initialize: function() {
+            this.hints = this.generateHints();
+        },
         getValue: function() {
             return this.get("value");
         },
@@ -21,9 +36,16 @@
         isSelected: function() {
             return this.get('selected');
         },
+        shouldShowHints: function() {
+            return false;
+        },
         getHints: function() {
+            return this.hints;
+        },
+        generateHints: function() {
             return [];
-        }
+        },
+        setValue: $.noop
     });
     Facts.FnPiece = Facts.StatementPiece.extend({
         getType: function() {
@@ -66,7 +88,10 @@
         getType: function() {
             'result'
         },
-        getHints: function() {
+        shouldShowHints: function() {
+            return true;
+        },
+        generateHints: function() {
             return [
                 new Facts.ValueHint({display_text: "return"}),
                 new Facts.ValueHint({display_text: "assign"})

@@ -128,6 +128,10 @@ $(function(){
         tagname: 'li',
         className: 'value-hint',
         template: _.template($('#value-hint-tmpl').html()),
+        postRender: function() {
+            this.setSelectedClass();
+            console.log(this.model.isSelected());
+        }
     });
 
     Facts.ValueHints = Backbone.View.extend({
@@ -136,9 +140,20 @@ $(function(){
             this.piece = null
 
             this.possibilty_list = this.$(".hint-possibilities");
+            this.selected_hint = null;
+        },
+        selectHint: function(hint) {
+            if(this.selected_hint) {
+                this.selected_hint.deselect();
+            }
+            this.selected_hint = hint;
+            this.selected_hint.select();
         },
         setPiece: function(p) {
             this.piece = p;
+            if(p.shouldShowHints()) {
+                this.selectHint(p.getHints()[0]);
+            }
         },
         showBelow: function(node) {
             this.render();
@@ -148,7 +163,7 @@ $(function(){
         render: function() {
             this.possibilty_list.empty();
             var self = this;
-
+            
             _.each(this.piece.getHints(), function(hint){
                 var v = new Facts.ValueHintView({model: hint});
                 self.possibilty_list.append(v.render().el);
@@ -197,7 +212,10 @@ $(function(){
                 if(Facts.Mode.isMode('edit')) {
                     piece_value.focus();
                     Facts.TheValueHints.setPiece(this.model);
-                    Facts.TheValueHints.showBelow(this.el);
+
+                    if(this.model.shouldShowHints()) {
+                        Facts.TheValueHints.showBelow(this.el);
+                    }
                 }
             } else {
                 Facts.Mode.off('change', this.render, this);

@@ -311,3 +311,12 @@ body {
     border: none;
     font-family: monospace;
 }
+
+.value-hint {
+    padding: 6px;
+}
+
+.value-hint.selected {
+    background: #eee;
+    border-radius: 5px;
+}
