@@ -89,7 +89,7 @@ class FactEncoder(json.JSONEncoder):
 @Singleton
 class Librarian:
 
-    def __init__(self, p="/Users/eli/dev/facts/sample-project"):
+    def __init__(self, p="/Users/eligoodman/dev/Facts/sample-project"):
         self.facts = self.ingest_all_at_path(p)
         self.path = p
 

@@ -130,7 +130,6 @@ $(function(){
         template: _.template($('#value-hint-tmpl').html()),
         postRender: function() {
             this.setSelectedClass();
-            console.log(this.model.isSelected());
         }
     });
 
@@ -142,7 +141,7 @@ $(function(){
             this.possibilty_list = this.$(".hint-possibilities");
             this.selected_hint = null;
         },
-        selectHint: function(hint) {
+        setHint: function(hint) {
             if(this.selected_hint) {
                 this.selected_hint.deselect();
             }
@@ -152,7 +151,7 @@ $(function(){
         setPiece: function(p) {
             this.piece = p;
             if(p.shouldShowHints()) {
-                this.selectHint(p.getHints()[0]);
+                this.setHint(p.getHints()[0]);
             }
         },
         showBelow: function(node) {
@@ -176,6 +175,33 @@ $(function(){
 
             var left = offset.left;
             this.$el.css('left', left + "px");
+        },
+        nextHint: function() {
+            return this.moveHint(function(i){
+                return i + 1;
+            }, function(changed, pieces) {
+                return changed < pieces.length;
+            });
+        },
+        previousHint: function() {
+            return this.moveHint(function(i){
+                return i - 1;
+            }, function(changed, pieces) {
+                return changed >= 0;
+            });
+        },
+        moveHint: function(change_cb, cmp_cb) {
+            var hints = this.piece.getHints();
+
+            var i = hints.indexOf(this.selected_hint);
+            var changed = change_cb(i);
+            if(cmp_cb(changed, hints)) {
+                var changed_hint = hints[changed];
+                this.setHint(changed_hint);
+            }
+        },
+        selectHint: function() {
+        
         }
     });
 
@@ -184,18 +210,11 @@ $(function(){
         tagName: 'span',
         template: _.template($('#statement-piece-tmpl').html()),
         events: {
-            'keydown .piece-value': 'maybeMove',
             'keyup .piece-value': 'setValue'
         },
         setValue: function() {
             var piece_value = this.$('.piece-value');
             this.model.setValue(piece_value.val(), true);
-        },
-        maybeMove: function(e) {
-            if(e.keyCode == 9) {
-                e.preventDefault();
-                Facts.Cursor.nextPiece();
-            }
         },
         postRender: function() {
             var piece_value = this.$('.piece-value');
@@ -654,27 +673,29 @@ $(function(){
             'esc': _.bind(Facts.TheSelector.hide, Facts.TheSelector)
         },
         'edit': {
-            //'tab': _.bind(Facts.Cursor.nextPiece, Facts.Cursor)
+            'tab': _.bind(Facts.Cursor.nextPiece, Facts.Cursor),
+            'down': _.bind(Facts.TheValueHints.nextHint, Facts.TheValueHints),
+            'up': _.bind(Facts.TheValueHints.previousHint, Facts.TheValueHints),
+            'enter': _.bind(Facts.TheValueHints.selectHint, Facts.TheValueHints)
         }
     };
     
     var mappings_by_key = {};
-    _.each(_.keys(keys), function(mode){
-        var mappings = keys[mode];
-        _.each(_.keys(mappings), function(key) {
+    _.each(keys, function(mappings, mode){
+        _.each(mappings, function(fn, key) {
             if(!_.has(mappings_by_key, key)) {
                 mappings_by_key[key] = {};
             }
 
-            mappings_by_key[key][mode] = mappings[key];
+            mappings_by_key[key][mode] = fn;
         });
     });
 
-    _.each(_.keys(mappings_by_key), function(key) {
+    _.each(mappings_by_key, function(mappings, key) {
         Mousetrap.bind(key, function(e){
-            _.each(_.keys(mappings_by_key[key]), function(mode){
+            _.each(mappings, function(fn, mode){
                 if(Facts.Mode.isMode(mode)) {
-                    mappings_by_key[key][mode](e);
+                    fn(e);
                 }
             });
         });
