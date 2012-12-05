@@ -200,9 +200,7 @@ $(function(){
                 this.setHint(changed_hint);
             }
         },
-        selectHint: function() {
-        
-        }
+        selectHint: $.noop
     });
 
     Facts.StatementPieceView = Facts.MView.extend({
@@ -210,11 +208,18 @@ $(function(){
         tagName: 'span',
         template: _.template($('#statement-piece-tmpl').html()),
         events: {
-            'keyup .piece-value': 'setValue'
+            'keydown .piece-value': 'maybeMove',
+            'keyup .piece-value': 'handleKeyup'
         },
-        setValue: function() {
+        handleKeyup: function() {
             var piece_value = this.$('.piece-value');
             this.model.setValue(piece_value.val(), true);
+        },
+        maybeMove: function(e) {
+            if(e.keyCode == 9) {
+                e.preventDefault();
+                Facts.Cursor.nextPiece();
+            }
         },
         postRender: function() {
             var piece_value = this.$('.piece-value');
