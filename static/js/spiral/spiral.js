@@ -159,6 +159,9 @@ $(function(){
             this.$el.show();
             this.reposition(node);
         },
+        hide: function() {
+            this.$el.hide();
+        },
         render: function() {
             this.possibilty_list.empty();
             var self = this;
@@ -200,7 +203,11 @@ $(function(){
                 this.setHint(changed_hint);
             }
         },
-        selectHint: $.noop
+        selectHint: function() {
+            var current_piece = Facts.Cursor.getPiece();
+            current_piece.setValue(this.selected_hint.get('value'));
+            Facts.Mode.setMode("move");
+        }
     });
 
     Facts.StatementPieceView = Facts.MView.extend({
@@ -239,7 +246,11 @@ $(function(){
 
                     if(this.model.shouldShowHints()) {
                         Facts.TheValueHints.showBelow(this.el);
+                    } else {
+                        Facts.TheValueHints.hide();
                     }
+                } else {
+                    Facts.TheValueHints.hide();
                 }
             } else {
                 Facts.Mode.off('change', this.render, this);

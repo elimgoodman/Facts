@@ -45,6 +45,9 @@
         generateHints: function() {
             return [];
         },
+        isPopulated: function() {
+            return true;
+        },
         setValue: $.noop
     });
     Facts.FnPiece = Facts.StatementPiece.extend({
@@ -56,6 +59,9 @@
     Facts.ArgPiece = Facts.StatementPiece.extend({
         setValue: function(val, silent) {
             this.set({value: val}, {silent: silent});
+        },
+        isPopulated: function() {
+            return (this.get('value')) ? true : false;
         }
     });
 
@@ -83,7 +89,8 @@
 
     Facts.ResultPiece = Facts.StatementPiece.extend({
         getValue: function() {
-            return "--";
+            var v = this.get('value');
+            return (v) ? v : "--";
         },
         getType: function() {
             'result'
@@ -93,9 +100,15 @@
         },
         generateHints: function() {
             return [
-                new Facts.ValueHint({display_text: "return"}),
-                new Facts.ValueHint({display_text: "assign"})
+                new Facts.ValueHint({display_text: "return", value: "and return"}),
+                new Facts.ValueHint({display_text: "assign", value: "and assign to:"})
             ];
+        },
+        setValue: function(val, silent) {
+            this.set({value: val}, {silent: silent});
+        },
+        isPopulated: function() {
+            return (this.get('value')) ? true : false;
         }
     });
 
@@ -218,7 +231,10 @@
             return pieces;
         },
         isUnpopulated: function() {
-            return true;
+            var populated = _.all(this.pieces, function(p){
+                return p.isPopulated();
+            });
+            return !populated;
         }
     });
 
