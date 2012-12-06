@@ -46,7 +46,7 @@ def create_or_update_fact():
 def find_action():
     librarian = Librarian.Instance()
 
-    return jsonify(resp=librarian.get_by_type('fn'))
+    return jsonify(resp=librarian.get_by_type('fn') + librarian.get_builtins())
 
 @app.route("/execute", methods=['POST'])
 def execute():

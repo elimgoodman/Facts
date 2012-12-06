@@ -6,7 +6,7 @@ import datetime
 from lang.exprs import Params, Param, Expr
 import lang.plyer as plyer
 
-class Fact:
+class Fact(object):
 
     def __init__(self, name, fact_type, body, metadata = {}):
         self.fact_id = md5.new(name + fact_type).hexdigest()
@@ -47,9 +47,7 @@ class Fact:
 class Fn(Fact):
 
     def to_json(self):
-        #FIXME: why doesn't this work?
-        #data = super(Fn, self).to_json()
-        data = self.__dict__
+        data = super(Fn, self).to_json()
         data['signature'] = self.parse_params_from_metadata()
         data['statements'] = self.get_statements()
         return data
@@ -75,6 +73,17 @@ class Fn(Fact):
 
         return statements
 
+class Builtin(Fn):
+    
+    def __init__(self, name):
+        super(Builtin, self).__init__(name, "builtin", "")
+    
+    def to_json(self):
+        data = super(Fn, self).to_json()
+        data['signature'] = Params(None)
+        data['statements'] = {}
+        return data
+
 class FactEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, (datetime.datetime, datetime.date)):
@@ -96,6 +105,11 @@ class Librarian:
     def get_all(self):
         return self.facts.values()
     
+    def get_builtins(self):
+        return [
+            Builtin("if")
+        ]
+
     def get_by_id(self, fact_id):
         return self.facts[fact_id]
     
