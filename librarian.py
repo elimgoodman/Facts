@@ -50,12 +50,15 @@ class Fn(Fact):
         data = super(Fn, self).to_json()
         data['signature'] = self.parse_params_from_metadata()
         data['statements'] = self.get_statements()
+        #FIXME:WTFWTFWTF
+        data['has_result'] = self.get_has_result()
         return data
 
     def parse_params_from_metadata(self):
         #TODO: make sure the current fact is the right type,
         #has valid metadata
-        params = Params(None)
+
+        params = Params(None, [])
         if self.metadata.has_key('takes') and self.metadata['takes']:
             for pair in self.metadata['takes'].split(","):
                 (name, typ) = pair.split(":")
@@ -73,16 +76,23 @@ class Fn(Fact):
 
         return statements
 
+    def get_has_result(self):
+        if self.metadata.has_key('returns'):
+            return self.metadata['returns'] != "None"
+
 class Builtin(Fn):
     
-    def __init__(self, name):
+    def __init__(self, name, takes, returns):
         super(Builtin, self).__init__(name, "builtin", "")
+        self.metadata['takes'] = takes
+        self.metadata['returns'] = returns
     
-    def to_json(self):
-        data = super(Fn, self).to_json()
-        data['signature'] = Params(None)
-        data['statements'] = {}
-        return data
+    #def to_json(self):
+        #data = super(Builtin, self).to_json()
+        #return data
+    
+    def get_statements(self):
+        return {}
 
 class FactEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -107,7 +117,7 @@ class Librarian:
     
     def get_builtins(self):
         return [
-            Builtin("if")
+            Builtin("if", "truth_stmt:Boolean,then:Block,else:Block", "None")
         ]
 
     def get_by_id(self, fact_id):

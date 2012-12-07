@@ -213,12 +213,15 @@
 
             pieces.push(new Facts.FnPiece({value: fact.get('name')}));
             pieces.push(new Facts.PrimaryArgPiece({value: sig.primary.name}));
-            pieces.push(new Facts.ResultPiece());
 
-            //_.each(val.args.args.slice(1), function(arg){
-                //pieces.push(new Facts.ArgNamePiece({value: arg.arg_name.value}));
-                //pieces.push(new Facts.ArgValPiece({value: arg.value.value}));
-            //});
+            _.each(sig.additional, function(arg){
+                pieces.push(new Facts.ArgNamePiece({value: arg.name}));
+                pieces.push(new Facts.ArgValPiece({value: "..."}));
+            });
+
+            if(fact.get('has_result')) {
+                pieces.push(new Facts.ResultPiece());
+            }
 
             //var type = this.get('type');
 

@@ -215,18 +215,11 @@ $(function(){
         tagName: 'span',
         template: _.template($('#statement-piece-tmpl').html()),
         events: {
-            'keydown .piece-value': 'maybeMove',
             'keyup .piece-value': 'handleKeyup'
         },
         handleKeyup: function() {
             var piece_value = this.$('.piece-value');
             this.model.setValue(piece_value.val(), true);
-        },
-        maybeMove: function(e) {
-            if(e.keyCode == 9) {
-                e.preventDefault();
-                Facts.Cursor.nextPiece();
-            }
         },
         postRender: function() {
             var piece_value = this.$('.piece-value');
@@ -683,13 +676,16 @@ $(function(){
             'up': _.bind(Facts.TheSelector.up, Facts.TheSelector),
             'down': _.bind(Facts.TheSelector.down, Facts.TheSelector),
             'enter': function(e) {
-                Facts.TheSelector.insertSelection();
                 e.preventDefault();
+                return Facts.TheSelector.insertSelection();
             },
             'esc': _.bind(Facts.TheSelector.hide, Facts.TheSelector)
         },
         'edit': {
-            'tab': _.bind(Facts.Cursor.nextPiece, Facts.Cursor),
+            'tab': function(e) {
+                e.preventDefault();
+                return Facts.Cursor.nextPiece();
+            },
             'down': _.bind(Facts.TheValueHints.nextHint, Facts.TheValueHints),
             'up': _.bind(Facts.TheValueHints.previousHint, Facts.TheValueHints),
             'enter': _.bind(Facts.TheValueHints.selectHint, Facts.TheValueHints)
