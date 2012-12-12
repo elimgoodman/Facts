@@ -117,7 +117,8 @@ class Librarian:
     
     def get_builtins(self):
         return [
-            Builtin("if", "truth_stmt:Boolean,then:Block,else:Block", "None")
+            Builtin("if", "truth_stmt:Boolean,then:Block,else:Block", "None"),
+            Builtin("isEqual", "x:Int,to:Int", "Boolean")
         ]
 
     def get_by_id(self, fact_id):

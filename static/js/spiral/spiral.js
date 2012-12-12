@@ -506,6 +506,7 @@ $(function(){
             Facts.Cursor.setStatement(stmt);
 
             this.hide();
+            Facts.Mode.setMode('edit');
         }
     });
 
@@ -686,6 +687,8 @@ $(function(){
                 e.preventDefault();
                 return Facts.Cursor.nextPiece();
             },
+            'right': _.bind(Facts.Cursor.nextPiece, Facts.Cursor),
+            'left': _.bind(Facts.Cursor.previousPiece, Facts.Cursor),
             'down': _.bind(Facts.TheValueHints.nextHint, Facts.TheValueHints),
             'up': _.bind(Facts.TheValueHints.previousHint, Facts.TheValueHints),
             'enter': _.bind(Facts.TheValueHints.selectHint, Facts.TheValueHints)
